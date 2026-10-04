@@ -15,7 +15,7 @@
 }
 
 html {
-  font-size: clamp(8px, min(0.833vw, 1.75vh), 16px);
+  font-size: clamp(8px, min(0.833vw, 1.75vh), 26px);
 }
 
 html,
@@ -283,4 +283,150 @@ input:focus {
   color: var(--muted);
 }
 
-/* ---------- small screens: stack and allow scrolling ---------
+/* ---------- phones, tablets, short/landscape windows ----------
+   Stacked layout, natural scrolling, fluid type. */
+
+@media (max-width: 900px), (max-height: 560px) {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    overflow: auto;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .page {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .brand-panel {
+    padding: max(1.75rem, env(safe-area-inset-top)) max(1.5rem, env(safe-area-inset-right)) 2rem max(1.5rem, env(safe-area-inset-left));
+    justify-content: flex-start;
+  }
+
+  .brand-panel::before,
+  .brand-panel::after {
+    display: none;
+  }
+
+  .logo-mark {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .logo-mark svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .logo-text {
+    font-size: 1.5rem;
+  }
+
+  .brand-copy {
+    margin-top: 1.75rem;
+  }
+
+  .eyebrow {
+    margin-bottom: 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .brand-copy h1 {
+    margin-bottom: 0.9rem;
+    max-width: 30rem;
+    font-size: clamp(2rem, 7vw, 3.4rem);
+  }
+
+  .lead {
+    font-size: clamp(1rem, 2.6vw, 1.15rem);
+    line-height: 1.6;
+  }
+
+  .brand-foot {
+    display: none;
+  }
+
+  .form-panel {
+    align-items: flex-start;
+    padding: 2rem max(1.25rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+  }
+
+  .container {
+    max-width: 32rem;
+  }
+
+  .container h2 {
+    font-size: clamp(1.8rem, 6vw, 2.3rem);
+  }
+
+  .subtitle {
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .tabs {
+    margin-bottom: 1.5rem;
+  }
+
+  .tab {
+    height: 3rem;
+    font-size: 1rem;
+  }
+
+  .field {
+    margin-bottom: 1.1rem;
+  }
+
+  label {
+    margin-bottom: 0.45rem;
+    font-size: 0.95rem;
+  }
+
+  /* 16px+ stops iOS from zooming into inputs */
+  input {
+    height: 3.25rem;
+    padding: 0 1rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+  }
+
+  #message {
+    min-height: 2.25rem;
+    font-size: 0.95rem;
+  }
+
+  .submit {
+    height: 3.4rem;
+    font-size: 1.05rem;
+    border-radius: 0.75rem;
+  }
+
+  .demo-note {
+    margin-top: 1.1rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* very small phones */
+@media (max-width: 360px) {
+  .brand-panel {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .form-panel {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
