@@ -1,6 +1,36 @@
 // const API_URL = "http://localhost:5000";
 const API_URL = "https://login-system-97ea.onrender.com";
 
+let mode = "login";
+
+function setMode(newMode) {
+  mode = newMode;
+  const isLogin = mode === "login";
+
+  document.getElementById("tab-login").classList.toggle("active", isLogin);
+  document.getElementById("tab-register").classList.toggle("active", !isLogin);
+  document.getElementById("name-field").hidden = isLogin;
+
+  document.getElementById("title").innerText = isLogin
+    ? "Welcome back"
+    : "Create your account";
+  document.getElementById("subtitle").innerText = isLogin
+    ? "Sign in to your staff account."
+    : "Register a new staff account.";
+  document.getElementById("submit-btn").innerText = isLogin
+    ? "Sign in"
+    : "Create account";
+  document.getElementById("message").innerText = "";
+}
+
+function submitForm() {
+  if (mode === "login") {
+    login();
+  } else {
+    register();
+  }
+}
+
 async function register() {
   const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;

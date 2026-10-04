@@ -3,24 +3,64 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login System</title>
+    <title>Sign in | VitalFit</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="container">
-      <h2>Login</h2>
+    <div class="page">
+      <aside class="brand-panel">
+        <div class="logo">
+          <span class="logo-mark">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+              <path d="M13.5 2 5 13.5h5.5L9.5 22 19 9.5h-5.8z" fill="#f26a21" />
+            </svg>
+          </span>
+          <span class="logo-text">VitalFit</span>
+        </div>
 
-      <input type="email" id="email" placeholder="Email" />
-      <input type="password" id="password" placeholder="Password" />
+        <div class="brand-copy">
+          <p class="eyebrow">VitalFit Staff Portal</p>
+          <h1>Stronger teams. Stronger members.</h1>
+          <p class="lead">
+            Sign in to manage memberships, trainers, payments, and gym activity.
+          </p>
+        </div>
 
-      <button onclick="login()">Login</button>
+        <p class="brand-foot">Membership management made simple.</p>
+      </aside>
 
-      <p>Don't have an account?</p>
+      <main class="form-panel">
+        <div class="container">
+          <h2 id="title">Welcome back</h2>
+          <p class="subtitle" id="subtitle">Sign in to your staff account.</p>
 
-      <input type="text" id="name" placeholder="Name" />
-      <button onclick="register()">Register</button>
+          <div class="tabs">
+            <button type="button" id="tab-login" class="tab active" onclick="setMode('login')">Sign in</button>
+            <button type="button" id="tab-register" class="tab" onclick="setMode('register')">Create account</button>
+          </div>
 
-      <p id="message"></p>
+          <div class="field" id="name-field" hidden>
+            <label for="name">Full name</label>
+            <input type="text" id="name" placeholder="Your name" />
+          </div>
+
+          <div class="field">
+            <label for="email">Email address</label>
+            <input type="email" id="email" placeholder="you@example.com" />
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="At least 8 characters" />
+          </div>
+
+          <p id="message"></p>
+
+          <button type="button" class="submit" id="submit-btn" onclick="submitForm()">Sign in</button>
+
+          <p class="demo-note">Demo authentication only. Do not use a real or reused password.</p>
+        </div>
+      </main>
     </div>
 
     <script src="app.js"></script>
