@@ -283,44 +283,4 @@ input:focus {
   color: var(--muted);
 }
 
-/* ---------- small screens: stack and allow scrolling ---------- */
-
-@media (max-width: 900px) {
-  html {
-    font-size: 14px;
-  }
-
-  body {
-    overflow: auto;
-  }
-
-  .page {
-    grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100vh;
-  }
-
-  .brand-panel {
-    padding: 2rem 1.5rem;
-  }
-
-  .brand-copy {
-    margin-top: 2rem;
-  }
-
-  .brand-copy h1 {
-    font-size: 2.8rem;
-  }
-
-  .eyebrow {
-    margin-bottom: 1rem;
-  }
-
-  .brand-foot {
-    display: none;
-  }
-
-  .form-panel {
-    padding: 2rem 1.25rem;
-  }
-}
+/* ---------- small screens: stack and allow scrolling ---------
