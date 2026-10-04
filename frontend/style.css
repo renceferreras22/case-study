@@ -1,3 +1,5 @@
+/* Everything is sized in rem; the root size scales with the window
+   (by width and height) so the whole page always fits the screen. */
 :root {
   --green-900: #115840;
   --green-700: #1d6b4b;
@@ -12,22 +14,28 @@
   box-sizing: border-box;
 }
 
+html {
+  font-size: clamp(8px, min(0.833vw, 1.75vh), 16px);
+}
+
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
 }
 
 body {
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   color: var(--ink);
   background: var(--bg);
+  overflow: hidden;
 }
 
 .page {
   display: grid;
   grid-template-columns: 47.5fr 52.5fr;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
 }
 
 /* ---------- left brand panel ---------- */
@@ -38,7 +46,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 114px 114px 20px;
+  padding: 7.5vh 7rem 1.5rem;
   color: #fff;
   background:
     radial-gradient(circle at 70% 25%, rgba(60, 160, 115, 0.55) 0%, transparent 55%),
@@ -48,10 +56,10 @@ body {
 .brand-panel::before {
   content: "";
   position: absolute;
-  right: -260px;
-  bottom: -120px;
-  width: 720px;
-  height: 720px;
+  right: -16rem;
+  bottom: -8rem;
+  width: 45rem;
+  height: 45rem;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.04);
   pointer-events: none;
@@ -60,10 +68,10 @@ body {
 .brand-panel::after {
   content: "";
   position: absolute;
-  left: 240px;
-  bottom: -330px;
-  width: 700px;
-  height: 700px;
+  left: 15rem;
+  bottom: -20rem;
+  width: 44rem;
+  height: 44rem;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.08);
   pointer-events: none;
@@ -77,31 +85,35 @@ body {
 .logo {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: -6px;
+  gap: 1rem;
 }
 
 .logo-mark {
   display: grid;
   place-items: center;
-  width: 57px;
-  height: 57px;
-  border-radius: 14px;
+  width: 3.55rem;
+  height: 3.55rem;
+  border-radius: 0.9rem;
   background: #dcf5e4;
+}
+
+.logo-mark svg {
+  width: 1.6rem;
+  height: 1.6rem;
 }
 
 .logo-text {
   font-size: 2rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.03em;
 }
 
 .brand-copy {
-  margin-top: 110px;
+  margin-top: 4vh;
 }
 
 .eyebrow {
-  margin: 0 0 40px;
+  margin: 0 0 2.2rem;
   font-size: 1.1rem;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -110,16 +122,16 @@ body {
 }
 
 .brand-copy h1 {
-  margin: 0 0 30px;
-  max-width: 700px;
-  font-size: clamp(2.6rem, 5.4vw, 5.6rem);
+  margin: 0 0 1.8rem;
+  max-width: 44rem;
+  font-size: 5.4rem;
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.045em;
 }
 
 .lead {
-  max-width: 620px;
+  max-width: 39rem;
   margin: 0;
   font-size: 1.5rem;
   line-height: 1.75;
@@ -127,8 +139,8 @@ body {
 }
 
 .brand-foot {
-  margin: auto 0 0;
-  padding-top: 90px;
+  margin: 0;
+  padding-top: 2rem;
   font-size: 1.25rem;
   color: #d3ecdc;
 }
@@ -139,17 +151,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
+  padding: 1.5rem;
   background: var(--bg);
+  overflow: hidden;
 }
 
 .container {
   width: 100%;
-  max-width: 645px;
+  max-width: 40.3rem;
 }
 
 .container h2 {
-  margin: 0 0 14px;
+  margin: 0 0 0.8rem;
   font-size: 2.9rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -157,7 +170,7 @@ body {
 }
 
 .subtitle {
-  margin: 0 0 34px;
+  margin: 0 0 2rem;
   font-size: 1.35rem;
   color: var(--muted);
 }
@@ -165,37 +178,34 @@ body {
 .tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 6px;
-  margin-bottom: 36px;
+  gap: 0.25rem;
+  padding: 0.4rem;
+  margin-bottom: 2.1rem;
   background: #eceff0;
-  border-radius: 16px;
+  border-radius: 1rem;
 }
 
 .tab {
-  height: 63px;
+  height: 3.9rem;
   border: 0;
-  border-radius: 12px;
+  border-radius: 0.75rem;
   background: transparent;
   font-family: inherit;
   font-size: 1.35rem;
   font-weight: 600;
-  color: var(--green-700);
+  color: #3f5a4c;
   cursor: pointer;
   transition: background 0.15s, box-shadow 0.15s;
 }
 
 .tab.active {
   background: #fff;
+  color: var(--green-700);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.tab:not(.active) {
-  color: #3f5a4c;
-}
-
 .field {
-  margin-bottom: 26px;
+  margin-bottom: 1.5rem;
 }
 
 .field[hidden] {
@@ -204,7 +214,7 @@ body {
 
 label {
   display: block;
-  margin-bottom: 14px;
+  margin-bottom: 0.8rem;
   font-size: 1.3rem;
   font-weight: 600;
   color: #112218;
@@ -212,14 +222,14 @@ label {
 
 input {
   width: 100%;
-  height: 72px;
-  padding: 0 22px;
+  height: 4.5rem;
+  padding: 0 1.4rem;
   font-family: inherit;
   font-size: 1.45rem;
   color: var(--ink);
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 0.9rem;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -234,9 +244,9 @@ input:focus {
 }
 
 #message {
-  min-height: 52px;
+  min-height: 3rem;
   margin: 0;
-  padding-top: 16px;
+  padding-top: 0.8rem;
   text-align: center;
   font-size: 1.1rem;
   color: #b3202a;
@@ -244,9 +254,9 @@ input:focus {
 
 .submit {
   width: 100%;
-  height: 73px;
+  height: 4.55rem;
   border: 0;
-  border-radius: 14px;
+  border-radius: 0.9rem;
   background: var(--green-700);
   font-family: inherit;
   font-size: 1.4rem;
@@ -267,36 +277,50 @@ input:focus {
 }
 
 .demo-note {
-  margin: 28px 0 0;
+  margin: 1.5rem 0 0;
   text-align: center;
   font-size: 1.15rem;
   color: var(--muted);
 }
 
-/* ---------- responsive ---------- */
+/* ---------- small screens: stack and allow scrolling ---------- */
 
 @media (max-width: 900px) {
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    overflow: auto;
+  }
+
   .page {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
   }
 
   .brand-panel {
-    padding: 40px 28px 28px;
+    padding: 2rem 1.5rem;
   }
 
   .brand-copy {
-    margin-top: 40px;
+    margin-top: 2rem;
+  }
+
+  .brand-copy h1 {
+    font-size: 2.8rem;
   }
 
   .eyebrow {
-    margin-bottom: 20px;
+    margin-bottom: 1rem;
   }
 
   .brand-foot {
-    padding-top: 30px;
+    display: none;
   }
 
-  .container h2 {
-    font-size: 2.2rem;
+  .form-panel {
+    padding: 2rem 1.25rem;
   }
 }
