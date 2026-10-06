@@ -162,7 +162,7 @@ app.post("/api/forgot-password", async (req, res) => {
 
     await user.save();
 
-    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+    const resetUrl = `https://case-study-frontend-three.vercel.app{resetToken}`;
 
     console.log(`\n--- PASSWORD RESET MAIL ---`);
     console.log(`To: ${user.email}`);
