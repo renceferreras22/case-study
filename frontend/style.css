@@ -185,6 +185,10 @@ body {
   border-radius: 1rem;
 }
 
+.tabs[hidden] {
+  display: none;
+}
+
 .tab {
   height: 3.9rem;
   border: 0;
@@ -243,6 +247,12 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(32, 122, 86, 0.18);
 }
 
+/* Added select drop-down element styling alignment updates */
+select:focus {
+  border-color: var(--green-600);
+  box-shadow: 0 0 0 3px rgba(32, 122, 86, 0.18);
+}
+
 #message {
   min-height: 3rem;
   margin: 0;
@@ -283,9 +293,11 @@ input:focus {
   color: var(--muted);
 }
 
-/* ---------- phones, tablets, short/landscape windows ----------
-   Stacked layout, natural scrolling, fluid type. */
+#forgot-link-container a:hover {
+  text-decoration: underline !important;
+}
 
+/* ---------- phones, tablets, short/landscape windows ---------- */
 @media (max-width: 900px), (max-height: 560px) {
   html {
     font-size: 16px;
@@ -387,8 +399,7 @@ input:focus {
     font-size: 0.95rem;
   }
 
-  /* 16px+ stops iOS from zooming into inputs */
-  input {
+  input, select {
     height: 3.25rem;
     padding: 0 1rem;
     font-size: 1rem;
@@ -412,7 +423,6 @@ input:focus {
   }
 }
 
-/* very small phones */
 @media (max-width: 360px) {
   .brand-panel {
     padding-left: 1rem;

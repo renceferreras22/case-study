@@ -1,68 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Sign in | VitalFit</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="page">
-      <aside class="brand-panel">
-        <div class="logo">
-          <span class="logo-mark">
-            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
-              <path d="M13.5 2 5 13.5h5.5L9.5 22 19 9.5h-5.8z" fill="#f26a21" />
-            </svg>
-          </span>
-          <span class="logo-text">VitalFit</span>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in | VitalFit</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page">
+    <!-- left brand panel -->
+    <div class="brand-panel">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#115840" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
         </div>
-
-        <div class="brand-copy">
-          <p class="eyebrow">VitalFit Staff Portal</p>
-          <h1>Stronger teams. Stronger members.</h1>
-          <p class="lead">
-            Sign in to manage memberships, trainers, payments, and gym activity.
-          </p>
-        </div>
-
-        <p class="brand-foot">Membership management made simple.</p>
-      </aside>
-
-      <main class="form-panel">
-        <div class="container">
-          <h2 id="title">Welcome back</h2>
-          <p class="subtitle" id="subtitle">Sign in to your staff account.</p>
-
-          <div class="tabs">
-            <button type="button" id="tab-login" class="tab active" onclick="setMode('login')">Sign in</button>
-            <button type="button" id="tab-register" class="tab" onclick="setMode('register')">Create account</button>
-          </div>
-
-          <div class="field" id="name-field" hidden>
-            <label for="name">Full name</label>
-            <input type="text" id="name" placeholder="Your name" />
-          </div>
-
-          <div class="field">
-            <label for="email">Email address</label>
-            <input type="email" id="email" placeholder="you@example.com" />
-          </div>
-
-          <div class="field">
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="At least 8 characters" />
-          </div>
-
-          <p id="message"></p>
-
-          <button type="button" class="submit" id="submit-btn" onclick="submitForm()">Sign in</button>
-
-          <p class="demo-note">Demo authentication only. Do not use a real or reused password.</p>
-        </div>
-      </main>
+        <div class="logo-text">VitalFit</div>
+      </div>
+      <div class="brand-copy">
+        <p class="eyebrow">VitalFit Management Portal</p>
+        <h1>Stronger teams.<br>Stronger members.</h1>
+        <p class="lead">Sign in to manage memberships, trainers, payments, and gym activity.</p>
+      </div>
+      <p class="brand-foot">Membership management made simple.</p>
     </div>
 
-    <script src="app.js"></script>
-  </body>
+    <!-- right form panel -->
+    <div class="form-panel">
+      <div class="container">
+        <h2 id="title">Welcome back</h2>
+        <p class="subtitle" id="subtitle">Sign in to your account.</p>
+
+        <div class="tabs" id="tabs-container">
+          <button class="tab active" id="tab-login" onclick="setMode('login')">Sign in</button>
+          <button class="tab" id="tab-register" onclick="setMode('register')">Create account</button>
+        </div>
+
+        <div class="field" id="name-field" hidden>
+          <label for="name">Full name</label>
+          <input type="text" id="name" placeholder="John Doe" />
+        </div>
+
+        <!-- NEW: Role field selector to register as Gym Staff or Gym Member -->
+        <div class="field" id="role-field" hidden>
+          <label for="role">Account Type</label>
+          <select id="role" style="width: 100%; height: 4.5rem; padding: 0 1.4rem; font-family: inherit; font-size: 1.45rem; color: #12261c; background: #fff; border: 1px solid #e3e8e5; border-radius: 0.9rem; outline: none;">
+            <option value="customer">Gym Member (Customer)</option>
+            <option value="admin">Gym Owner / Staff (Admin)</option>
+          </select>
+        </div>
+
+        <div class="field" id="email-field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" placeholder="name@company.com" />
+        </div>
+
+        <div class="field" id="password-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" />
+        </div>
+
+        <p id="message"></p>
+
+        <button class="submit" id="submit-btn" onclick="submitForm()">Sign in</button>
+
+        <div id="forgot-link-container" style="text-align: center; margin-top: 1.5rem; font-size: 1.2rem;">
+          <a href="#" id="toggle-link" onclick="handleLinkClick(); return false;" style="color: #1d6b4b; text-decoration: none; font-weight: 600;">Forgot password?</a>
+        </div>
+
+        <p class="demo-note">Demo authentication only. Do not use a real or reused password.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
 </html>
