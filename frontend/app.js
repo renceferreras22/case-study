@@ -100,9 +100,7 @@ async function register() {
     });
 
     const data = await response.json();
-
-    document.getElementById("message").innerText =
-      data.message || "Registration complete";
+    document.getElementById("message").innerText = data.message || "Registration complete";
   } catch (error) {
     document.getElementById("message").innerText = "Cannot connect to server";
   }
@@ -139,8 +137,7 @@ async function login() {
         window.location.href = "dashboard.html"; // Members view page file (can update to member.html if needed later)
       }
     } else {
-      document.getElementById("message").innerText =
-        data.message || "Login failed";
+      document.getElementById("message").innerText = data.message || "Login failed";
     }
   } catch (error) {
     document.getElementById("message").innerText = "Cannot connect to server";
@@ -185,7 +182,9 @@ async function resetPassword() {
     });
 
     const data = await response.json();
-    document.getElementById("message").innerText = data.message;
+    
+    // FIXED: Correctly outputs backend errors (like a 400 Bad Request) instead of slipping straight into catch
+    document.getElementById("message").innerText = data.message || "Operation completed.";
     
     if (response.ok) {
       setTimeout(() => setMode("login"), 3000); 

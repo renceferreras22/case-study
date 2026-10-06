@@ -162,7 +162,8 @@ app.post("/api/forgot-password", async (req, res) => {
 
     await user.save();
 
-    const resetUrl = `https://case-study-frontend-three.vercel.app{resetToken}`;
+    // FIXED: Properly formatted query parameter link scheme for static single-page Vercel setups
+    const resetUrl = `https://vercel.app{resetToken}`;
 
     console.log(`\n--- PASSWORD RESET MAIL ---`);
     console.log(`To: ${user.email}`);
@@ -188,7 +189,7 @@ app.post("/api/reset-password/:token", async (req, res) => {
 
     const user = await User.findOne({
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
+      resetPasswordExpires: { \$gt: Date.now() }
     });
 
     if (!user) {
