@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
 });
 
-const User = mongoose.model("User", userSchema);
+// Third argument forces the collection name to "users"
+const User = mongoose.model("User", userSchema, "users");
 
 app.get("/", (req, res) => {
   res.json({ message: "Login API is running." });
@@ -35,13 +36,13 @@ app.post("/api/register", async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return res
         .status(400)
-        .json({ message: "Password must be at least 6 characters." });
+        .json({ message: "Password must be at least 8 characters." });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(409).json({ message: "Email is already registered." });
     }
@@ -56,6 +57,7 @@ app.post("/api/register", async (req, res) => {
 
     res.status(201).json({ message: "Registration successful." });
   } catch (error) {
+    console.error("Register error:", error);
     res.status(500).json({ message: "Server error." });
   }
 });
@@ -64,7 +66,11 @@ app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password." });
     }
@@ -89,6 +95,7 @@ app.post("/api/login", async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Server error." });
   }
 });
@@ -119,7 +126,8 @@ app.get("/api/profile", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  // dbName forces the "test" database, matching your Atlas screenshot
+  .connect(process.env.MONGODB_URI, { dbName: "test" })
   .then(() => {
     console.log("MongoDB connected.");
     app.listen(PORT, () => {
