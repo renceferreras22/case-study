@@ -430,3 +430,1341 @@ input:focus {
     transition: none !important;
   }
 }
+
+
+/* =====================================================================
+   Dashboard (dashboard.html) — every rule below is scoped to body.dashboard
+   so nothing here can change the sign-in page (index.html).
+   ===================================================================== */
+
+body.dashboard {
+  /* palette copied from the sign-in page (index.html / style.css) */
+  --bg: #f5f7f5;
+  --ink: #12261c;
+  --head: #112218;
+  --muted: #6b7a72;
+  --faint: #a3aea8;
+  --line: #e3e8e5;
+  --green: #1d6b4b;
+  --green-hover: #175b3f;
+  --focus: #207a56;
+  --mint: #e3f4ea;
+  --logo-tile: #dcf5e4;
+  --accent: #f26a21;
+  --field: #fff;
+  --track: #eceff0;
+  --tab-ink: #3f5a4c;
+  --side-text: #d3ecdc;
+  --side-label: #b9e8cc;
+  --side-hover: rgba(255, 255, 255, 0.08);
+  --side-active: rgba(255, 255, 255, 0.14);
+  --side-line: rgba(255, 255, 255, 0.16);
+}
+
+body.dashboard * {
+  box-sizing: border-box;
+}
+
+html:has(body.dashboard) {
+  scroll-behavior: smooth;
+}
+
+body.dashboard {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body.dashboard [hidden] {
+  display: none !important;
+}
+
+body.dashboard h1, body.dashboard h2, body.dashboard p {
+  margin: 0;
+}
+
+body.dashboard button, body.dashboard input, body.dashboard select {
+  font: inherit;
+  color: inherit;
+}
+
+body.dashboard a {
+  color: inherit;
+  text-decoration: none;
+}
+
+body.dashboard .i {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+body.dashboard .sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 232px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  padding: 32px 20px 24px;
+  background: linear-gradient(160deg, #1f7452 0%, #17664a 50%, #115840 100%);
+  overflow-y: auto;
+}
+
+body.dashboard .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+body.dashboard .brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--logo-tile);
+}
+
+body.dashboard .brand-mark svg {
+  width: 22px;
+  height: 22px;
+}
+
+body.dashboard .brand-name {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+body.dashboard .nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+body.dashboard .nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--side-label);
+}
+
+body.dashboard .nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 48px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--side-text);
+  transition: background .15s, color .15s;
+}
+
+body.dashboard .nav a:hover {
+  background: var(--side-hover);
+}
+
+body.dashboard .nav a.active {
+  background: var(--side-active);
+  color: #fff;
+  font-weight: 600;
+}
+
+body.dashboard .grow {
+  flex: 1;
+}
+
+body.dashboard .identity {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+body.dashboard .identity hr {
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--side-line);
+}
+
+body.dashboard .staff {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.dashboard .staff-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--side-active);
+  color: var(--side-text);
+}
+
+body.dashboard .staff b {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+body.dashboard .staff div span {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--side-text);
+}
+
+body.dashboard .logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  align-self: flex-start;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font-size: 13px;
+  color: var(--side-text);
+  cursor: pointer;
+}
+
+body.dashboard .logout:hover {
+  color: #fff;
+}
+
+body.dashboard .main {
+  margin-left: 232px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body.dashboard .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 76px;
+  padding: 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+body.dashboard .crumb, body.dashboard .context {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+body.dashboard .context {
+  gap: 8px;
+}
+
+body.dashboard .crumb b {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+body.dashboard .page-content {
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+}
+
+body.dashboard .section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  scroll-margin-top: 76px;
+}
+
+body.dashboard .heading {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 42px;
+}
+
+body.dashboard .heading h1 {
+  flex: 1;
+  font-size: 30px;
+  font-weight: 400;
+}
+
+body.dashboard .footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding: 0 36px 24px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+body.dashboard .card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+body.dashboard .card-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+body.dashboard .card-head > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+body.dashboard .card-head h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+body.dashboard .card-head p {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+body.dashboard .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+body.dashboard .btn-primary {
+  background: var(--green);
+  color: #fff;
+}
+
+body.dashboard .btn-primary:hover {
+  background: var(--green-hover);
+}
+
+body.dashboard .btn-outline {
+  background: #fff;
+  border-color: var(--line);
+  color: var(--green);
+}
+
+body.dashboard .btn-outline:hover {
+  background: var(--mint);
+}
+
+body.dashboard .btn:disabled {
+  background: var(--track);
+  border-color: transparent;
+  color: #829189;
+  cursor: not-allowed;
+}
+
+body.dashboard .pill {
+  padding: 5px 10px;
+  border-radius: 100px;
+  background: var(--mint);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+body.dashboard .pill:empty {
+  display: none;
+}
+
+body.dashboard .grid {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+body.dashboard .grid-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+body.dashboard .g-main-side {
+  grid-template-columns: minmax(0, 710fr) minmax(0, 402fr);
+}
+
+body.dashboard .g-halves {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.dashboard .metric {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+body.dashboard .metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+body.dashboard .metric-top .i {
+  color: var(--green);
+}
+
+body.dashboard .metric-value {
+  min-height: 39px;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 39px;
+}
+
+body.dashboard .metric-note {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+body.dashboard .table-wrap {
+  overflow-x: auto;
+}
+
+body.dashboard table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+body.dashboard th {
+  height: 44px;
+  padding: 0 12px;
+  background: var(--bg);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+body.dashboard th:first-child {
+  border-radius: 7px 0 0 7px;
+}
+
+body.dashboard th:last-child {
+  border-radius: 0 7px 7px 0;
+}
+
+body.dashboard td {
+  padding: 12px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+body.dashboard .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 210px;
+  padding: 26px 24px;
+  text-align: center;
+}
+
+body.dashboard .empty-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--mint);
+  color: var(--green);
+}
+
+body.dashboard .empty h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+body.dashboard .empty p {
+  max-width: 380px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+body.dashboard .tfoot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+body.dashboard .tfoot span:last-child {
+  color: var(--muted);
+}
+
+body.dashboard .row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+body.dashboard .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+body.dashboard .form-field label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+body.dashboard .control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 13px;
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+body.dashboard .control:focus-within {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(32, 122, 86, 0.18);
+}
+
+body.dashboard .control .prefix {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+body.dashboard .control .i {
+  color: var(--faint);
+  pointer-events: none;
+}
+
+body.dashboard .control input, body.dashboard .control select {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 13px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+body.dashboard .control select:invalid, body.dashboard .control input:placeholder-shown {
+  color: var(--faint);
+}
+
+body.dashboard .control input::placeholder {
+  color: var(--faint);
+}
+
+body.dashboard .actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+body.dashboard .actions small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+body.dashboard .guidance {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--mint);
+  color: var(--green);
+}
+
+body.dashboard .guidance b {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+body.dashboard .guidance p {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+body.dashboard .method-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--track);
+}
+
+body.dashboard .method-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 180px;
+  height: 42px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tab-ink);
+  cursor: pointer;
+}
+
+body.dashboard .method-tab.active {
+  background: #fff;
+  color: var(--green);
+}
+
+body.dashboard .method-tab:not(.active) .tick {
+  display: none;
+}
+
+body.dashboard .cash-sum, body.dashboard .qr-box {
+  border-radius: 8px;
+}
+
+body.dashboard .amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+body.dashboard .amount-row output {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+body.dashboard .rule {
+  height: 1px;
+  background: var(--line);
+}
+
+body.dashboard .change {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+body.dashboard .change output {
+  font-size: 24px;
+  color: var(--green);
+}
+
+body.dashboard .hint {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+body.dashboard .qr-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  min-height: 268px;
+  padding: 28px;
+  text-align: center;
+  background: var(--bg);
+  border: 1px dashed var(--line);
+}
+
+body.dashboard .qr-box .empty-icon {
+  width: 48px;
+  height: 48px;
+}
+
+body.dashboard .qr-box h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+body.dashboard .qr-box p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+body.dashboard .overview {
+  display: flex;
+  gap: 32px;
+  align-items: stretch;
+}
+
+body.dashboard .overview > div:first-child {
+  width: 280px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+body.dashboard .big {
+  min-height: 44px;
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+body.dashboard .vr {
+  width: 1px;
+  background: var(--line);
+}
+
+body.dashboard .methods {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+body.dashboard .method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+body.dashboard .method .i {
+  color: var(--green);
+}
+
+body.dashboard .method > span:nth-child(2) {
+  flex: 1;
+}
+
+body.dashboard .method .count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+body.dashboard .method .sum {
+  min-width: 40px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+body.dashboard .note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+body.dashboard .chart {
+  display: flex;
+  flex-direction: column;
+  height: 238px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+body.dashboard .chart .empty {
+  flex: 1;
+  min-height: 0;
+}
+
+body.dashboard .chart .rule {
+  flex: none;
+}
+
+body.dashboard .method-total {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+body.dashboard .method-total .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+body.dashboard .method-total .top output {
+  min-height: 19px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+body.dashboard .bar {
+  height: 7px;
+  border-radius: 4px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+body.dashboard .bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--green);
+}
+
+body.dashboard .method-total small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+body.dashboard .summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+}
+
+body.dashboard .summary-row output {
+  min-height: 24px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+body.dashboard .scope {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+body.dashboard .scope > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.dashboard .scope .i {
+  color: var(--muted);
+}
+
+@media (max-width: 1180px) {
+  body.dashboard .grid-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.dashboard .g-main-side, body.dashboard .g-halves, body.dashboard .g-pay {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.dashboard .overview {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  body.dashboard .vr {
+    width: 100%;
+    height: 1px;
+  }
+
+  body.dashboard .overview > div:first-child {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 860px) {
+  body.dashboard .sidebar {
+    position: static;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    padding: 16px 20px;
+  }
+
+  body.dashboard .sidebar .grow, body.dashboard .nav-label, body.dashboard .staff, body.dashboard .identity hr {
+    display: none;
+  }
+
+  body.dashboard .nav {
+    order: 3;
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+  }
+
+  body.dashboard .nav a {
+    height: 42px;
+    flex: none;
+  }
+
+  body.dashboard .identity {
+    margin-left: auto;
+  }
+
+  body.dashboard .main {
+    margin-left: 0;
+  }
+
+  body.dashboard .topbar {
+    top: 0;
+    padding: 0 20px;
+    height: 60px;
+  }
+
+  body.dashboard .context {
+    display: none;
+  }
+
+  body.dashboard .page-content {
+    padding: 24px 20px;
+    gap: 56px;
+  }
+
+  body.dashboard .section {
+    scroll-margin-top: 60px;
+  }
+
+  body.dashboard .heading h1 {
+    font-size: 26px;
+  }
+
+  body.dashboard .footer {
+    padding: 0 20px 24px;
+    flex-direction: column;
+  }
+
+}
+
+@media (max-width: 560px) {
+  body.dashboard .grid-metrics, body.dashboard .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.dashboard .method-tab {
+    width: auto;
+    flex: 1;
+  }
+
+  body.dashboard .card {
+    padding: 18px;
+  }
+
+  body.dashboard .actions {
+    flex-wrap: wrap;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(body.dashboard) {
+    scroll-behavior: auto;
+  }
+
+  body.dashboard * {
+    transition: none !important;
+  }
+
+}
+
+
+/* page-level resets so the dashboard scrolls normally (index.html keeps its fixed layout) */
+body.dashboard {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* neutralise the sign-in form's global label/input styling inside the dashboard */
+body.dashboard .form-field label {
+  margin-bottom: 0;
+}
+
+body.dashboard .form-field {
+  margin-bottom: 0;
+}
+
+body.dashboard .control input {
+  width: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  transition: none;
+}
+
+body.dashboard .control input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+body.dashboard .method-tab.active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+body.dashboard .control select:has(option[value=""]:checked) {
+  color: var(--faint);
+}
+
+/* ---------- Members (scoped to body.dashboard) ---------- */
+body.dashboard .members-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+body.dashboard .members-table tbody tr:hover td {
+  background: var(--bg);
+}
+
+body.dashboard .members-table th:last-child,
+body.dashboard .members-table td:last-child {
+  text-align: right;
+}
+
+body.dashboard .person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+body.dashboard .person > div {
+  min-width: 0;
+}
+
+body.dashboard .person b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+body.dashboard .person small {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+body.dashboard .avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--mint);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+body.dashboard .avatar.big {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+body.dashboard .pill.status-inactive {
+  background: #eceff0;
+  color: var(--muted);
+}
+
+body.dashboard .row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.dashboard .btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+body.dashboard .icon-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+body.dashboard .icon-btn:hover {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body.dashboard .icon-btn.danger:hover {
+  background: #fdf1f1;
+  color: #b3202a;
+}
+
+body.dashboard .btn-danger {
+  background: #fff;
+  border-color: #efd0d2;
+  color: #b3202a;
+}
+
+body.dashboard .btn-danger:hover {
+  background: #fdf1f1;
+}
+
+body.dashboard .btn-danger.solid {
+  background: #b3202a;
+  border-color: #b3202a;
+  color: #fff;
+}
+
+body.dashboard .btn-danger.solid:hover {
+  background: #961a23;
+}
+
+body.dashboard .btn:focus-visible,
+body.dashboard .icon-btn:focus-visible,
+body.dashboard .method-tab:focus-visible,
+body.dashboard .nav a:focus-visible {
+  outline: 3px solid rgba(32, 122, 86, 0.45);
+  outline-offset: 2px;
+}
+
+/* dialogs */
+body.dashboard dialog.modal {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(17, 34, 24, 0.28);
+  overflow: auto;
+}
+
+body.dashboard dialog.modal.small {
+  width: min(420px, calc(100% - 32px));
+}
+
+body.dashboard dialog.modal::backdrop {
+  background: rgba(17, 34, 24, 0.5);
+}
+
+body.dashboard .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+}
+
+body.dashboard .modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+body.dashboard .modal-head h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+body.dashboard .modal-head p {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+body.dashboard .modal-head .person h2 {
+  margin-bottom: 6px;
+}
+
+body.dashboard .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+body.dashboard .modal-actions .btn-danger:not(.solid) {
+  margin-right: auto;
+}
+
+body.dashboard .confirm-text {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+body.dashboard .confirm-text b {
+  color: var(--ink);
+}
+
+body.dashboard .form-error {
+  min-height: 0;
+  font-size: 12px;
+  color: #b3202a;
+}
+
+body.dashboard .form-error:empty {
+  display: none;
+}
+
+body.dashboard .control.area {
+  height: auto;
+  align-items: stretch;
+  padding: 10px 13px;
+}
+
+body.dashboard .control textarea {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+body.dashboard .control textarea::placeholder {
+  color: var(--faint);
+}
+
+body.dashboard .details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 0;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+body.dashboard .details > div {
+  min-width: 0;
+}
+
+body.dashboard .details .wide {
+  grid-column: 1 / -1;
+}
+
+body.dashboard .details dt {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+body.dashboard .details dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 560px) {
+  body.dashboard .details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.dashboard .modal-body {
+    padding: 18px;
+  }
+}
+
+body.dashboard .heading h1,
+body.dashboard .card-head h2,
+body.dashboard .modal-head h2 {
+  color: var(--head);
+}

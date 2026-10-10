@@ -3,20 +3,577 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard</title>
+    <title>Dashboard | VitalFit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
   </head>
-  <body>
-    <h1>Welcome to the Dashboard</h1>
+  <body class="dashboard">
+    <!-- icon sprite (Lucide set, as used in the Figma design) -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <symbol id="i-dashboard" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+      <symbol id="i-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></symbol>
+      <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M12 16v5"/><path d="M16 14v7"/><path d="M20 10v11"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18v3"/><path d="M8 14v7"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></symbol>
+      <symbol id="i-login" viewBox="0 0 24 24"><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></symbol>
+      <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+      <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="i-building" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+      <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+      <symbol id="i-banknote" viewBox="0 0 24 24"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+      <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></symbol>
+      <symbol id="i-badge" viewBox="0 0 24 24"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-user-x" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" x2="22" y1="8" y2="13"/><line x1="22" x2="17" y1="8" y2="13"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    </svg>
 
-    <p>You have successfully logged in.</p>
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M13.5 2 5 13.5h5.5L9.5 22 19 9.5h-5.8z" fill="#f26a21" />
+          </svg>
+        </span>
+        <span class="brand-name">VitalFit</span>
+      </div>
 
-    <button onclick="logout()">Logout</button>
+      <nav class="nav" aria-label="Workspace">
+        <p class="nav-label">WORKSPACE</p>
+        <a href="#dashboard" data-nav="dashboard" class="active"><svg class="i" width="19" height="19"><use href="#i-dashboard" /></svg>Dashboard</a>
+        <a href="#members" data-nav="members"><svg class="i" width="19" height="19"><use href="#i-users" /></svg>Members</a>
+        <a href="#payments" data-nav="payments"><svg class="i" width="19" height="19"><use href="#i-wallet" /></svg>Payment Methods</a>
+        <a href="#analytics" data-nav="analytics"><svg class="i" width="19" height="19"><use href="#i-chart" /></svg>Analytics</a>
+      </nav>
 
-    <script>
-      function logout() {
-        localStorage.removeItem("token");
-        window.location.href = "index.html";
-      }
-    </script>
+      <div class="grow"></div>
+
+      <div class="identity">
+        <hr />
+        <div class="staff">
+          <span class="staff-mark"><svg class="i" width="17" height="17"><use href="#i-shield" /></svg></span>
+          <div><b>Staff workspace</b><span>Gym operations</span></div>
+        </div>
+        <button type="button" class="logout" onclick="logout()"><svg class="i" width="17" height="17"><use href="#i-logout" /></svg>Log out</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="crumb">
+          <span>Workspace</span>
+          <svg class="i" width="13" height="13"><use href="#i-chev-r" /></svg>
+          <b id="crumb-current">Dashboard</b>
+        </div>
+        <div class="context"><svg class="i" width="16" height="16"><use href="#i-building" /></svg>VitalFit staff portal</div>
+      </header>
+
+      <main class="page-content">
+        <!-- ===================== DASHBOARD ===================== -->
+        <section class="section" id="dashboard" data-title="Dashboard">
+          <div class="heading">
+            <h1>Dashboard</h1>
+            <a class="btn btn-primary" href="#payments"><svg class="i" width="16" height="16"><use href="#i-plus" /></svg>Record payment</a>
+          </div>
+
+          <div class="grid grid-metrics">
+            <div class="metric">
+              <div class="metric-top">Members in gym <svg class="i" width="19" height="19"><use href="#i-users" /></svg></div>
+              <p class="metric-value" data-field="members-in-gym"></p>
+              <p class="metric-note">Members currently checked in</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">Today's check-ins <svg class="i" width="19" height="19"><use href="#i-login" /></svg></div>
+              <p class="metric-value" data-field="todays-checkins"></p>
+              <p class="metric-note">Check-ins recorded today</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">New members <svg class="i" width="19" height="19"><use href="#i-user-plus" /></svg></div>
+              <p class="metric-value" data-field="new-members"></p>
+              <p class="metric-note">New members registered this month</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">Today's payments <svg class="i" width="19" height="19"><use href="#i-wallet" /></svg></div>
+              <p class="metric-value" data-field="todays-payments"></p>
+              <p class="metric-note">Recorded Cash and GCash payments</p>
+            </div>
+          </div>
+
+          <div class="grid g-main-side">
+            <div class="card records">
+              <div class="card-head">
+                <div><h2>Recent check-ins</h2><p>Recent member check-ins.</p></div>
+                <span class="pill" data-field="checkins-range">Today</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Member</th><th>Check-in time</th><th>Check-out time</th><th>Status</th></tr></thead>
+                  <tbody id="checkins-body"></tbody>
+                </table>
+                <div class="empty">
+                  <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-receipt" /></svg></span>
+                  <h3>No check-ins yet</h3>
+                  <p>Recorded check-ins will appear here.</p>
+                </div>
+              </div>
+              <div class="tfoot"><span data-field="checkins-count"></span><span data-field="checkins-context"></span></div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div><h2>Members in gym</h2><p>Members currently checked in.</p></div>
+                <span class="pill" data-field="present-count"></span>
+              </div>
+              <ul id="in-gym-list" style="list-style:none;margin:0;padding:0"></ul>
+              <div class="empty records-empty" style="min-height:253px">
+                <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-users" /></svg></span>
+                <h3>The gym is empty</h3>
+                <p>Checked-in members will appear here.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h2>Payment summary</h2><p>Today's recorded Cash and GCash payments.</p></div>
+              <a class="btn btn-outline" href="#payments"><svg class="i" width="16" height="16"><use href="#i-arrow" /></svg>Payment Methods</a>
+            </div>
+            <div class="overview">
+              <div>
+                <span>Total recorded</span>
+                <p class="big" data-field="today-total"></p>
+                <span style="line-height:1.5">Total recorded payments today.</span>
+              </div>
+              <div class="vr"></div>
+              <div class="methods">
+                <div class="method">
+                  <svg class="i" width="20" height="20"><use href="#i-banknote" /></svg><span>Cash</span>
+                  <span class="count" data-field="today-cash-count"></span><span class="sum" data-field="today-cash-total"></span>
+                </div>
+                <div class="method">
+                  <svg class="i" width="20" height="20"><use href="#i-phone" /></svg><span>GCash</span>
+                  <span class="count" data-field="today-gcash-count"></span><span class="sum" data-field="today-gcash-total"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="note"><svg class="i" width="15" height="15"><use href="#i-info" /></svg>School demo · GCash accounts and payments are simulated for project use only.</p>
+        </section>
+
+        <!-- ===================== MEMBERS ===================== -->
+        <section class="section" id="members" data-title="Members">
+          <div class="heading">
+            <h1>Members</h1>
+            <button type="button" class="btn btn-primary" id="add-member-btn"><svg class="i" width="16" height="16"><use href="#i-user-plus" /></svg>Add member</button>
+          </div>
+
+          <div class="grid grid-metrics">
+            <div class="metric">
+              <div class="metric-top">Total members <svg class="i" width="19" height="19"><use href="#i-users" /></svg></div>
+              <p class="metric-value" data-field="members-total"></p>
+              <p class="metric-note">All saved member records</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">Active <svg class="i" width="19" height="19"><use href="#i-badge" /></svg></div>
+              <p class="metric-value" data-field="members-active"></p>
+              <p class="metric-note">Members with an active status</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">Inactive <svg class="i" width="19" height="19"><use href="#i-user-x" /></svg></div>
+              <p class="metric-value" data-field="members-inactive"></p>
+              <p class="metric-note">Members marked inactive</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">Joined this month <svg class="i" width="19" height="19"><use href="#i-user-plus" /></svg></div>
+              <p class="metric-value" data-field="members-new"></p>
+              <p class="metric-note">New members this calendar month</p>
+            </div>
+          </div>
+
+          <div class="card records" id="members-card">
+            <div class="card-head">
+              <div><h2>Member directory</h2><p>Everyone registered at the gym.</p></div>
+              <span class="pill" id="members-count"></span>
+            </div>
+            <div class="row">
+              <div class="form-field">
+                <label for="member-search">Search</label>
+                <div class="control"><input id="member-search" type="search" placeholder="Search name, email, phone or plan" autocomplete="off" /></div>
+              </div>
+              <div class="form-field">
+                <label for="member-status-filter">Status</label>
+                <div class="control">
+                  <select id="member-status-filter">
+                    <option value="" selected>All statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg>
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="members-table" style="min-width:760px">
+                <colgroup><col style="width:30%" /><col style="width:16%" /><col style="width:16%" /><col style="width:12%" /><col style="width:14%" /><col style="width:12%" /></colgroup>
+                <thead><tr><th>Member</th><th>Phone</th><th>Plan</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                <tbody id="members-body"></tbody>
+              </table>
+              <div class="empty">
+                <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-users" /></svg></span>
+                <h3 id="members-empty-title">No members yet</h3>
+                <p id="members-empty-text">Add your first member to build the directory.</p>
+              </div>
+            </div>
+            <div class="tfoot"><span id="members-footer-count"></span><span>Saved in this browser</span></div>
+          </div>
+        </section>
+
+        <!-- ===================== PAYMENT METHODS ===================== -->
+        <section class="section" id="payments" data-title="Payment Methods">
+          <div class="heading"><h1>Payment Methods</h1></div>
+
+          <div class="method-tabs" role="tablist" aria-label="Payment method">
+            <button type="button" class="method-tab active" role="tab" id="tab-cash" aria-selected="true" aria-controls="panel-cash" data-tab="cash">
+              <svg class="i" width="18" height="18"><use href="#i-banknote" /></svg>Cash<svg class="i tick" width="14" height="14"><use href="#i-check" /></svg>
+            </button>
+            <button type="button" class="method-tab" role="tab" id="tab-gcash" aria-selected="false" aria-controls="panel-gcash" data-tab="gcash">
+              <svg class="i" width="18" height="18"><use href="#i-phone" /></svg>GCash
+            </button>
+          </div>
+
+          <!-- Cash -->
+          <div id="panel-cash" role="tabpanel" aria-labelledby="tab-cash" class="grid g-main-side">
+            <div class="card">
+              <div class="card-head"><div><h2>Record cash payment</h2><p>Enter the payment details.</p></div></div>
+              <div class="row">
+                <div class="form-field">
+                  <label for="cash-member">Member *</label>
+                  <div class="control"><select id="cash-member" required><option value="" selected disabled hidden>Select a member</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
+                </div>
+                <div class="form-field">
+                  <label for="cash-purpose">Payment purpose *</label>
+                  <div class="control"><select id="cash-purpose" required><option value="" selected disabled hidden>Select payment purpose</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-field">
+                  <label for="cash-due">Payment amount *</label>
+                  <div class="control"><span class="prefix">PHP</span><input id="cash-due" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter amount due" required /></div>
+                </div>
+                <div class="form-field">
+                  <label for="cash-received">Cash received *</label>
+                  <div class="control"><span class="prefix">PHP</span><input id="cash-received" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter cash tendered" required /></div>
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="cash-date">Payment date *</label>
+                <div class="control"><input id="cash-date" type="datetime-local" required /></div>
+              </div>
+              <div class="form-field">
+                <label for="cash-notes">Notes (optional)</label>
+                <div class="control"><input id="cash-notes" type="text" placeholder="Add a note about this payment" /></div>
+              </div>
+              <div class="actions">
+                <small>* Required fields</small>
+                <button type="button" class="btn" id="cash-submit" disabled><svg class="i" width="16" height="16"><use href="#i-check" /></svg>Record cash payment</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><div><h2>Cash calculation</h2><p>Calculated from the amounts entered.</p></div></div>
+              <div class="amount-row"><span>Amount due</span><output id="calc-due">—</output></div>
+              <div class="amount-row"><span>Cash received</span><output id="calc-received">—</output></div>
+              <div class="rule"></div>
+              <div class="change"><span>Change to return</span><output id="calc-change">—</output></div>
+              <p class="hint">Enter both amounts to calculate change.</p>
+            </div>
+          </div>
+
+          <!-- GCash -->
+          <div id="panel-gcash" role="tabpanel" aria-labelledby="tab-gcash" class="grid g-main-side g-pay" style="grid-template-columns:minmax(0,650fr) minmax(0,462fr)" hidden>
+            <div class="card">
+              <div class="card-head"><div><h2>GCash payment</h2><p>Enter the payment details for your demo.</p></div></div>
+              <div class="row">
+                <div class="form-field">
+                  <label for="g-member">Member</label>
+                  <div class="control"><select id="g-member"><option value="" selected disabled hidden>Select a member</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
+                </div>
+                <div class="form-field">
+                  <label for="g-purpose">Payment purpose</label>
+                  <div class="control"><select id="g-purpose"><option value="" selected disabled hidden>Select payment purpose</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-field">
+                  <label for="g-amount">Payment amount</label>
+                  <div class="control"><span class="prefix">PHP</span><input id="g-amount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter requested amount" /></div>
+                </div>
+                <div class="form-field">
+                  <label for="g-date">Payment date</label>
+                  <div class="control"><input id="g-date" type="datetime-local" /></div>
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="g-notes">Notes</label>
+                <div class="control"><input id="g-notes" type="text" placeholder="Add a note about this request" /></div>
+              </div>
+              <div class="guidance">
+                <svg class="i" width="18" height="18"><use href="#i-info" /></svg>
+                <div><b>School demo only</b><p>Fictional accounts only. No real money is transferred.</p></div>
+              </div>
+              <div class="actions">
+                <small>Required fields</small>
+                <button type="button" class="btn" id="g-submit" disabled><svg class="i" width="16" height="16"><use href="#i-scan" /></svg>Generate QR</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><div><h2>Demo QR</h2><p>For the school project only.</p></div></div>
+              <div class="qr-box" id="qr-output">
+                <span class="empty-icon"><svg class="i" width="23" height="23"><use href="#i-scan" /></svg></span>
+                <h3>No QR generated</h3>
+                <p>Enter payment details to generate a demo QR, not a live GCash payment QR.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment history -->
+          <div class="card records">
+            <div class="card-head">
+              <div><h2>Payment history</h2><p>Recorded Cash and GCash payments.</p></div>
+              <a class="btn btn-outline" href="#analytics"><svg class="i" width="16" height="16"><use href="#i-arrow" /></svg>View analytics</a>
+            </div>
+            <div class="table-wrap">
+              <table style="min-width:720px">
+                <thead><tr><th>Member</th><th>Purpose</th><th>Method</th><th>Amount (PHP)</th><th>Date</th><th>Reference</th><th>Status</th></tr></thead>
+                <tbody id="payment-history-body"></tbody>
+              </table>
+              <div class="empty">
+                <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-receipt" /></svg></span>
+                <h3>No payments recorded</h3>
+                <p>Your payment records will appear here.</p>
+              </div>
+            </div>
+            <div class="tfoot"><span data-field="history-count"></span><span data-field="history-context"></span></div>
+          </div>
+        </section>
+
+        <!-- ===================== ANALYTICS ===================== -->
+        <section class="section" id="analytics" data-title="Analytics">
+          <div class="heading">
+            <h1>Analytics</h1>
+            <span class="pill">School demo</span>
+          </div>
+
+          <div class="scope">
+            <div>
+              <svg class="i" width="17" height="17"><use href="#i-calendar" /></svg>
+              <span>Reporting period</span><span class="pill">All time</span>
+            </div>
+            <span data-field="analytics-status"></span>
+          </div>
+
+          <div class="grid grid-metrics">
+            <div class="metric">
+              <div class="metric-top">Total recorded <svg class="i" width="19" height="19"><use href="#i-receipt" /></svg></div>
+              <p class="metric-value" data-field="total-recorded"></p>
+              <p class="metric-note">Cash + GCash · school demo totals</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">Cash <svg class="i" width="19" height="19"><use href="#i-badge" /></svg></div>
+              <p class="metric-value" data-field="cash-total"></p>
+              <p class="metric-note">Cash payments recorded</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">GCash <svg class="i" width="19" height="19"><use href="#i-wallet" /></svg></div>
+              <p class="metric-value" data-field="gcash-total"></p>
+              <p class="metric-note">GCash payments recorded</p>
+            </div>
+            <div class="metric">
+              <div class="metric-top">Total records <svg class="i" width="19" height="19"><use href="#i-receipt" /></svg></div>
+              <p class="metric-value" data-field="total-records"></p>
+              <p class="metric-note">Cash + GCash records</p>
+            </div>
+          </div>
+
+          <div class="grid g-main-side">
+            <div class="card">
+              <div class="card-head"><div><h2>Payments over time</h2><p>Chart requires recorded payments.</p></div></div>
+              <div class="chart" id="payments-chart">
+                <div class="empty">
+                  <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-chart" /></svg></span>
+                  <h3>No payment trend yet</h3>
+                  <p>A timeline will appear once payments have been recorded. No chart values are available.</p>
+                </div>
+                <div class="rule"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><div><h2>Payment method breakdown</h2><p>Recorded totals by method.</p></div></div>
+              <div class="method-total">
+                <div class="top"><span>Cash</span><output data-field="breakdown-cash-total"></output></div>
+                <div class="bar"><i data-field="breakdown-cash-bar"></i></div>
+                <small data-field="breakdown-cash-count"></small>
+              </div>
+              <div class="method-total">
+                <div class="top"><span>GCash</span><output data-field="breakdown-gcash-total"></output></div>
+                <div class="bar"><i data-field="breakdown-gcash-bar"></i></div>
+                <small data-field="breakdown-gcash-count"></small>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid g-halves">
+            <div class="card">
+              <div class="card-head"><div><h2>Membership</h2><p>Based on saved member records.</p></div></div>
+              <div class="summary-row"><span>Total members</span><output data-field="total-members"></output></div>
+              <div class="summary-row"><span>Active memberships</span><output data-field="active-memberships"></output></div>
+              <p class="hint">No members registered yet.</p>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><h2>Check-ins</h2><p>Attendance across recorded visits.</p></div></div>
+              <div class="summary-row"><span>Total check-ins</span><output data-field="total-checkins"></output></div>
+              <div class="summary-row"><span>Members currently in gym</span><output data-field="current-in-gym"></output></div>
+              <p class="hint">Attendance summaries require check-in records.</p>
+            </div>
+          </div>
+
+          <div class="card records">
+            <div class="card-head">
+              <div><h2>All payment records</h2><p>Every recorded cash payment and GCash payment.</p></div>
+              <span class="pill" data-field="records-count"></span>
+            </div>
+            <div class="row">
+              <div class="form-field">
+                <label for="filter-member">Member</label>
+                <div class="control"><input id="filter-member" type="search" placeholder="Search members" /></div>
+              </div>
+              <div class="form-field">
+                <label for="filter-method">Method</label>
+                <div class="control">
+                  <select id="filter-method"><option value="" selected>All methods</option></select>
+                  <svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg>
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table style="min-width:640px">
+                <thead><tr><th>Member</th><th>Purpose</th><th>Method</th><th>Amount (PHP)</th><th>Date &amp; time</th><th>Reference</th></tr></thead>
+                <tbody id="all-records-body"></tbody>
+              </table>
+              <div class="empty">
+                <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-receipt" /></svg></span>
+                <h3>No payments recorded</h3>
+                <p>Record a cash payment or GCash payment to build your transaction history.</p>
+              </div>
+            </div>
+            <div class="tfoot"><span data-field="records-footer-count"></span><span data-field="records-footer-context"></span></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>VitalFit · Gym management</span>
+        <span>All payment amounts in PHP</span>
+      </footer>
+    </div>
+    <!-- Add member -->
+    <dialog class="modal" id="add-dialog" aria-labelledby="add-title">
+      <form class="modal-body" id="member-form">
+        <div class="modal-head">
+          <div><h2 id="add-title">Add member</h2><p>Enter the member's details. Fields marked * are required.</p></div>
+          <button type="button" class="icon-btn" data-close aria-label="Close"><svg class="i" width="18" height="18"><use href="#i-x" /></svg></button>
+        </div>
+        <div class="form-field">
+          <label for="m-name">Full name *</label>
+          <div class="control"><input id="m-name" type="text" placeholder="Member's full name" required autocomplete="off" /></div>
+        </div>
+        <div class="row">
+          <div class="form-field">
+            <label for="m-email">Email address</label>
+            <div class="control"><input id="m-email" type="email" placeholder="name@example.com" autocomplete="off" /></div>
+          </div>
+          <div class="form-field">
+            <label for="m-phone">Phone</label>
+            <div class="control"><input id="m-phone" type="tel" placeholder="Contact number" autocomplete="off" /></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-field">
+            <label for="m-plan">Membership plan</label>
+            <div class="control"><input id="m-plan" type="text" placeholder="e.g. plan name" autocomplete="off" /></div>
+          </div>
+          <div class="form-field">
+            <label for="m-status">Status</label>
+            <div class="control">
+              <select id="m-status"><option value="active" selected>Active</option><option value="inactive">Inactive</option></select>
+              <svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg>
+            </div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="m-joined">Join date</label>
+          <div class="control"><input id="m-joined" type="date" /></div>
+        </div>
+        <div class="form-field">
+          <label for="m-notes">Notes (optional)</label>
+          <div class="control area"><textarea id="m-notes" rows="3" placeholder="Anything staff should know about this member"></textarea></div>
+        </div>
+        <p class="form-error" id="member-error" role="alert"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-close>Cancel</button>
+          <button type="submit" class="btn btn-primary"><svg class="i" width="16" height="16"><use href="#i-check" /></svg>Save member</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Member details -->
+    <dialog class="modal" id="details-dialog" aria-labelledby="md-name">
+      <div class="modal-body">
+        <div class="modal-head">
+          <div class="person">
+            <span class="avatar big" id="md-avatar"></span>
+            <div><h2 id="md-name"></h2><span class="pill" id="md-status"></span></div>
+          </div>
+          <button type="button" class="icon-btn" data-close aria-label="Close"><svg class="i" width="18" height="18"><use href="#i-x" /></svg></button>
+        </div>
+        <dl class="details">
+          <div><dt>Email</dt><dd id="md-email"></dd></div>
+          <div><dt>Phone</dt><dd id="md-phone"></dd></div>
+          <div><dt>Membership plan</dt><dd id="md-plan"></dd></div>
+          <div><dt>Join date</dt><dd id="md-joined"></dd></div>
+          <div class="wide"><dt>Notes</dt><dd id="md-notes"></dd></div>
+        </dl>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="md-delete"><svg class="i" width="16" height="16"><use href="#i-trash" /></svg>Delete member</button>
+          <button type="button" class="btn btn-outline" data-close>Close</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Delete confirmation -->
+    <dialog class="modal small" id="confirm-dialog" aria-labelledby="confirm-title">
+      <div class="modal-body">
+        <div><h2 id="confirm-title">Delete this member?</h2><p class="confirm-text"><b id="confirm-name"></b> will be permanently removed from the directory. This can't be undone.</p></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-close>Cancel</button>
+          <button type="button" class="btn btn-danger solid" id="confirm-delete"><svg class="i" width="16" height="16"><use href="#i-trash" /></svg>Delete</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="app.js"></script>
   </body>
 </html>
