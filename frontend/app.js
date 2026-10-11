@@ -178,60 +178,61 @@ function initDashboard() {
   syncEmpty();
 }
 
-/* ---------- Members: add / delete / search / details ----------
-   Records are kept in this browser (localStorage). To use your own backend later,
-   replace loadMembers() and saveMembers() inside initMembers(). */
-function initMembers() {
-  const KEY = "vitalfit_members";
-  const STATUS = { active: "Active", inactive: "Inactive" };
+/* ---------- Data layer: members + payments, stored in MongoDB through the backend ----------
+   test.members  <- /api/members
+   test.payments <- /api/payments                                                          */
+async function api(path, options) {
+  options = options || {};
+  const token = localStorage.getItem("token");
+  let response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method: options.method || "GET",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+  } catch (e) {
+    throw new Error("Cannot connect to server.");
+  }
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (e) {
+    data = null;
+  }
+
+  if (response.status === 401) {
+    logout(); // token missing or expired -> back to the sign-in page
+    throw new Error("Your session expired. Please sign in again.");
+  }
+  if (!response.ok) {
+    throw new Error((data && data.message) || "Something went wrong.");
+  }
+  return data;
+}
+
+function initData() {
   const $ = (id) => document.getElementById(id);
-  let members = loadMembers();
+  const STATUS = { active: "Active", inactive: "Inactive" };
+  const PAY_STATUS = { paid: "Paid", pending: "Pending", cancelled: "Cancelled" };
+  const METHOD = { cash: "Cash", gcash: "GCash" };
+
+  let members = [];
+  let payments = [];
+  let membersState = "loading"; // loading | ready | error
+  let loadMessage = "";
   let pendingDeleteId = null;
+  let gcashPayment = null;
+  const emptyQr = $("qr-output").innerHTML; // the static "No QR generated" markup
 
-  function loadMembers() {
-    try {
-      const data = JSON.parse(localStorage.getItem(KEY));
-      return Array.isArray(data) ? data : [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  function saveMembers() {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(members));
-    } catch (e) {
-      console.warn("Could not save members:", e);
-    }
-  }
-
+  /* ----- small helpers ----- */
   function el(tag, cls, text) {
     const node = document.createElement(tag);
     if (cls) node.className = cls;
     if (text !== undefined) node.textContent = text;
     return node;
-  }
-
-  function uid() {
-    return window.crypto && crypto.randomUUID ? crypto.randomUUID() : "m" + Date.now() + Math.random().toString(16).slice(2);
-  }
-
-  function todayISO() {
-    const d = new Date();
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  }
-
-  function fmtDate(iso) {
-    if (!iso) return "—";
-    const d = new Date(iso + "T00:00:00");
-    return isNaN(d) ? "—" : d.toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" });
-  }
-
-  function initials(name) {
-    const parts = name.trim().split(/\s+/);
-    const first = parts[0] ? parts[0][0] : "";
-    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
-    return (first + last).toUpperCase();
   }
 
   function icon(id, size) {
@@ -244,6 +245,65 @@ function initMembers() {
     use.setAttribute("href", "#" + id);
     svg.appendChild(use);
     return svg;
+  }
+
+  function button(label, cls, onClick) {
+    const b = el("button", cls, label);
+    b.type = "button";
+    b.addEventListener("click", onClick);
+    return b;
+  }
+
+  function iconButton(iconId, label, cls, onClick) {
+    const b = el("button", "icon-btn " + (cls || ""));
+    b.type = "button";
+    b.title = label;
+    b.setAttribute("aria-label", label);
+    b.appendChild(icon(iconId, 16));
+    b.addEventListener("click", onClick);
+    return b;
+  }
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const todayISO = () => {
+    const d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  };
+  const nowLocalInput = () => {
+    const d = new Date();
+    return todayISO() + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  };
+  const fmtDate = (iso) => {
+    if (!iso) return "—";
+    const d = new Date(iso + "T00:00:00");
+    return isNaN(d) ? "—" : d.toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" });
+  };
+  const fmtDateTime = (iso) => {
+    const d = new Date(iso);
+    return isNaN(d) ? "—" : d.toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" });
+  };
+  const num = (n) => Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money = (n) => "₱" + num(n);
+  const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+  const sameDay = (iso, d) => {
+    const x = new Date(iso);
+    return x.getFullYear() === d.getFullYear() && x.getMonth() === d.getMonth() && x.getDate() === d.getDate();
+  };
+  const sum = (list) => list.reduce((t, p) => t + p.amount, 0);
+
+  function initials(name) {
+    const parts = name.trim().split(/\s+/);
+    const first = parts[0] ? parts[0][0] : "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase();
+  }
+
+  function setText(selector, value) {
+    document.querySelectorAll(selector).forEach((n) => { n.textContent = value; });
+  }
+
+  function poke(id) {
+    $(id).dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   /* ----- dialogs ----- */
@@ -266,17 +326,18 @@ function initMembers() {
     b.addEventListener("click", () => closeDialog(b.closest("dialog")));
   });
 
-  /* ----- table ----- */
+  /* =====================================================================
+     MEMBERS
+     ===================================================================== */
   function visibleMembers() {
     const q = $("member-search").value.trim().toLowerCase();
     const status = $("member-status-filter").value;
     return members
       .filter((m) => !status || m.status === status)
-      .filter((m) => !q || [m.name, m.email, m.phone, m.plan].some((v) => (v || "").toLowerCase().includes(q)))
-      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      .filter((m) => !q || [m.name, m.email, m.phone, m.plan].some((v) => (v || "").toLowerCase().includes(q)));
   }
 
-  function buildRow(m) {
+  function memberRow(m) {
     const tr = document.createElement("tr");
 
     const who = el("td");
@@ -300,44 +361,35 @@ function initMembers() {
 
     const actions = el("td");
     const wrap = el("div", "row-actions");
-    const view = el("button", "btn btn-outline btn-sm", "View");
-    view.type = "button";
-    view.addEventListener("click", () => showDetails(m));
-    const del = el("button", "icon-btn danger");
-    del.type = "button";
-    del.setAttribute("aria-label", "Delete " + m.name);
-    del.appendChild(icon("i-trash", 16));
-    del.addEventListener("click", () => askDelete(m));
-    wrap.appendChild(view);
-    wrap.appendChild(del);
+    wrap.appendChild(button("View", "btn btn-outline btn-sm", () => showDetails(m)));
+    wrap.appendChild(iconButton("i-trash", "Delete " + m.name, "danger", () => askDelete(m)));
     actions.appendChild(wrap);
     tr.appendChild(actions);
     return tr;
   }
 
-  function setText(selector, value) {
-    document.querySelectorAll(selector).forEach((n) => { n.textContent = value; });
-  }
-
-  function updateSummaries() {
+  function updateMemberSummaries() {
     const month = todayISO().slice(0, 7);
     const active = members.filter((m) => m.status === "active").length;
     const joinedThisMonth = members.filter((m) => (m.joined || "").slice(0, 7) === month).length;
-    setText('[data-field="members-total"]', members.length);
-    setText('[data-field="members-active"]', active);
-    setText('[data-field="members-inactive"]', members.length - active);
-    setText('[data-field="members-new"]', joinedThisMonth);
+    const ready = membersState === "ready";
+    const show = (n) => (ready ? String(n) : "");
+
+    setText('[data-field="members-total"]', show(members.length));
+    setText('[data-field="members-active"]', show(active));
+    setText('[data-field="members-inactive"]', show(members.length - active));
+    setText('[data-field="members-new"]', show(joinedThisMonth));
     // the same figures feed the Analytics and Dashboard cards
-    setText('[data-field="total-members"]', members.length);
-    setText('[data-field="active-memberships"]', active);
-    setText('[data-field="new-members"]', joinedThisMonth);
-    $("members-count").textContent = members.length ? members.length + (members.length === 1 ? " member" : " members") : "";
+    setText('[data-field="total-members"]', show(members.length));
+    setText('[data-field="active-memberships"]', show(active));
+    setText('[data-field="new-members"]', show(joinedThisMonth));
+    $("members-count").textContent = ready && members.length ? plural(members.length, "member", "members") : "";
+    $("hint-members").hidden = !ready || members.length > 0;
   }
 
   function fillMemberSelects() {
     ["cash-member", "g-member"].forEach((id) => {
       const sel = $(id);
-      if (!sel) return;
       const current = sel.value;
       while (sel.options.length > 1) sel.remove(1);
       members.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((m) => {
@@ -352,23 +404,36 @@ function initMembers() {
     });
   }
 
-  function render() {
+  function renderMembers() {
     const list = visibleMembers();
     const body = $("members-body");
     body.replaceChildren();
-    list.forEach((m) => body.appendChild(buildRow(m)));
+    list.forEach((m) => body.appendChild(memberRow(m)));
 
-    const none = members.length === 0;
-    $("members-empty-title").textContent = none ? "No members yet" : "No matching members";
-    $("members-empty-text").textContent = none ? "Add your first member to build the directory." : "Try a different search or status filter.";
+    let title, text;
+    if (membersState === "loading") {
+      title = "Loading members…";
+      text = "The server may take up to a minute to wake up.";
+    } else if (membersState === "error") {
+      title = "Couldn't load members";
+      text = loadMessage + " Refresh the page to try again.";
+    } else if (members.length === 0) {
+      title = "No members yet";
+      text = "Add your first member to build the directory.";
+    } else {
+      title = "No matching members";
+      text = "Try a different search or status filter.";
+    }
+    $("members-empty-title").textContent = title;
+    $("members-empty-text").textContent = text;
     $("members-card").querySelector(".empty").hidden = list.length > 0;
     $("members-footer-count").textContent = members.length ? "Showing " + list.length + " of " + members.length : "";
 
-    updateSummaries();
+    updateMemberSummaries();
     fillMemberSelects();
   }
 
-  /* ----- add ----- */
+  /* ----- add member ----- */
   $("add-member-btn").addEventListener("click", () => {
     $("member-form").reset();
     $("m-joined").value = todayISO();
@@ -377,11 +442,13 @@ function initMembers() {
     $("m-name").focus();
   });
 
-  $("member-form").addEventListener("submit", (e) => {
+  $("member-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const error = $("member-error");
+    const submit = e.target.querySelector('button[type="submit"]');
     const name = $("m-name").value.trim().replace(/\s+/g, " ");
     const email = $("m-email").value.trim();
-    const error = $("member-error");
+
     if (!name) {
       error.textContent = "Please enter the member's full name.";
       return;
@@ -390,23 +457,33 @@ function initMembers() {
       error.textContent = "A member with this email address already exists.";
       return;
     }
-    members.push({
-      id: uid(),
-      name: name,
-      email: email,
-      phone: $("m-phone").value.trim(),
-      plan: $("m-plan").value.trim(),
-      status: $("m-status").value,
-      joined: $("m-joined").value || todayISO(),
-      notes: $("m-notes").value.trim(),
-      createdAt: Date.now(),
-    });
-    saveMembers();
-    render();
-    closeDialog($("add-dialog"));
+
+    error.textContent = "";
+    submit.disabled = true;
+    try {
+      const data = await api("/api/members", {
+        method: "POST",
+        body: {
+          name: name,
+          email: email,
+          phone: $("m-phone").value.trim(),
+          plan: $("m-plan").value.trim(),
+          status: $("m-status").value,
+          joined: $("m-joined").value || todayISO(),
+          notes: $("m-notes").value.trim(),
+        },
+      });
+      members.unshift(data.member);
+      renderMembers();
+      closeDialog($("add-dialog"));
+    } catch (err) {
+      error.textContent = err.message;
+    } finally {
+      submit.disabled = false;
+    }
   });
 
-  /* ----- details ----- */
+  /* ----- member details ----- */
   function showDetails(m) {
     $("md-avatar").textContent = initials(m.name);
     $("md-name").textContent = m.name;
@@ -425,30 +502,377 @@ function initMembers() {
     openDialog($("details-dialog"));
   }
 
-  /* ----- delete ----- */
+  /* ----- delete member ----- */
   function askDelete(m) {
     pendingDeleteId = m.id;
     $("confirm-name").textContent = m.name;
+    $("confirm-error").textContent = "";
     openDialog($("confirm-dialog"));
   }
 
-  $("confirm-delete").addEventListener("click", () => {
-    if (pendingDeleteId) {
+  $("confirm-delete").addEventListener("click", async () => {
+    if (!pendingDeleteId) return;
+    const btn = $("confirm-delete");
+    btn.disabled = true;
+    try {
+      await api("/api/members/" + encodeURIComponent(pendingDeleteId), { method: "DELETE" });
       members = members.filter((m) => m.id !== pendingDeleteId);
-      saveMembers();
-      render();
+      pendingDeleteId = null;
+      renderMembers();
+      closeDialog($("confirm-dialog"));
+    } catch (err) {
+      $("confirm-error").textContent = err.message;
+    } finally {
+      btn.disabled = false;
     }
-    pendingDeleteId = null;
-    closeDialog($("confirm-dialog"));
   });
 
-  $("member-search").addEventListener("input", render);
-  $("member-status-filter").addEventListener("change", render);
+  $("member-search").addEventListener("input", renderMembers);
+  $("member-status-filter").addEventListener("change", renderMembers);
 
-  render();
+  /* =====================================================================
+     PAYMENTS
+     ===================================================================== */
+  const paidPayments = () => payments.filter((p) => p.status === "paid");
+
+  function paymentRow(p, withStatus) {
+    const tr = document.createElement("tr");
+    tr.appendChild(el("td", "", p.memberName));
+    tr.appendChild(el("td", "", p.purpose));
+    tr.appendChild(el("td", "", METHOD[p.method] || p.method));
+    tr.appendChild(el("td", "", num(p.amount)));
+    tr.appendChild(el("td", "", fmtDateTime(p.paidAt)));
+    tr.appendChild(el("td", "", p.reference));
+
+    if (withStatus) {
+      const td = el("td");
+      const cell = el("div", "status-cell");
+      cell.appendChild(el("span", "pill status-" + p.status, PAY_STATUS[p.status] || p.status));
+      if (p.status === "pending") {
+        cell.appendChild(iconButton("i-check", "Mark as paid", "ok", () => updateStatus(p.id, "paid")));
+        cell.appendChild(iconButton("i-x", "Cancel payment", "danger", () => updateStatus(p.id, "cancelled")));
+      }
+      td.appendChild(cell);
+      tr.appendChild(td);
+    }
+    return tr;
+  }
+
+  function renderTrend(list) {
+    const box = $("payments-chart");
+    const old = box.querySelector("svg.trend");
+    if (old) old.remove();
+    box.querySelector(".empty").hidden = list.length > 0;
+    $("trend-sub").textContent = list.length ? "Recorded payments over the last 7 days." : "Chart requires recorded payments.";
+    if (!list.length) return;
+
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      days.push(d);
+    }
+    const totals = days.map((d) => sum(list.filter((p) => sameDay(p.paidAt, d))));
+    const max = Math.max.apply(null, totals) || 1;
+
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("class", "trend");
+    svg.setAttribute("viewBox", "0 0 560 200");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Payments recorded in the last 7 days");
+    const add = (tag, attrs, text) => {
+      const n = document.createElementNS(ns, tag);
+      Object.keys(attrs).forEach((k) => n.setAttribute(k, attrs[k]));
+      if (text !== undefined) n.textContent = text;
+      svg.appendChild(n);
+    };
+    add("line", { x1: 10, x2: 550, y1: 156, y2: 156 });
+    days.forEach((d, i) => {
+      const cx = 40 + i * 80;
+      const h = totals[i] ? Math.max(3, (totals[i] / max) * 120) : 0;
+      if (h) add("rect", { x: cx - 22, y: 156 - h, width: 44, height: h, rx: 5 });
+      if (totals[i]) add("text", { x: cx, y: 150 - h, class: "val" }, totals[i].toLocaleString("en-PH", { maximumFractionDigits: 0 }));
+      add("text", { x: cx, y: 176 }, d.toLocaleDateString("en-PH", { month: "short", day: "numeric" }));
+    });
+    box.insertBefore(svg, box.querySelector(".rule"));
+  }
+
+  function renderPayments() {
+    const paid = paidPayments();
+    const cash = paid.filter((p) => p.method === "cash");
+    const gcash = paid.filter((p) => p.method === "gcash");
+    const total = sum(paid);
+    const today = new Date();
+    const todayPaid = paid.filter((p) => sameDay(p.paidAt, today));
+    const todayCash = todayPaid.filter((p) => p.method === "cash");
+    const todayGcash = todayPaid.filter((p) => p.method === "gcash");
+
+    // Payment history (Payment Methods section)
+    const history = $("payment-history-body");
+    history.replaceChildren();
+    payments.forEach((p) => history.appendChild(paymentRow(p, true)));
+    setText('[data-field="history-count"]', payments.length ? plural(payments.length, "record", "records") : "");
+    setText('[data-field="history-context"]', payments.length ? "Newest first" : "");
+
+    // Dashboard cards
+    setText('[data-field="todays-payments"]', money(sum(todayPaid)));
+    setText('[data-field="today-total"]', money(sum(todayPaid)));
+    setText('[data-field="today-cash-count"]', plural(todayCash.length, "payment", "payments"));
+    setText('[data-field="today-cash-total"]', money(sum(todayCash)));
+    setText('[data-field="today-gcash-count"]', plural(todayGcash.length, "payment", "payments"));
+    setText('[data-field="today-gcash-total"]', money(sum(todayGcash)));
+
+    // Analytics cards
+    setText('[data-field="total-recorded"]', money(total));
+    setText('[data-field="cash-total"]', money(sum(cash)));
+    setText('[data-field="gcash-total"]', money(sum(gcash)));
+    setText('[data-field="total-records"]', String(paid.length));
+    setText('[data-field="breakdown-cash-total"]', money(sum(cash)));
+    setText('[data-field="breakdown-gcash-total"]', money(sum(gcash)));
+    setText('[data-field="breakdown-cash-count"]', plural(cash.length, "payment", "payments"));
+    setText('[data-field="breakdown-gcash-count"]', plural(gcash.length, "payment", "payments"));
+    document.querySelector('[data-field="breakdown-cash-bar"]').style.width = total ? (sum(cash) / total) * 100 + "%" : "0";
+    document.querySelector('[data-field="breakdown-gcash-bar"]').style.width = total ? (sum(gcash) / total) * 100 + "%" : "0";
+    renderTrend(paid);
+
+    // All payment records (Analytics section)
+    const q = $("filter-member").value.trim().toLowerCase();
+    const method = $("filter-method").value;
+    const rows = payments.filter((p) => (!method || p.method === method) && (!q || p.memberName.toLowerCase().includes(q)));
+    const all = $("all-records-body");
+    all.replaceChildren();
+    rows.forEach((p) => all.appendChild(paymentRow(p, false)));
+    $("records-empty-title").textContent = payments.length ? "No matching payments" : "No payments recorded";
+    $("records-empty-text").textContent = payments.length
+      ? "Try a different member name or method."
+      : "Record a cash payment or GCash payment to build your transaction history.";
+    setText('[data-field="records-count"]', payments.length ? plural(payments.length, "record", "records") : "");
+    setText('[data-field="records-footer-count"]', payments.length ? "Showing " + rows.length + " of " + payments.length : "");
+    setText('[data-field="records-footer-context"]', payments.length ? "Newest first" : "");
+  }
+
+  $("filter-member").addEventListener("input", renderPayments);
+  $("filter-method").addEventListener("change", renderPayments);
+
+  /* ----- cash payment ----- */
+  function resetCashForm() {
+    ["cash-purpose", "cash-due", "cash-received", "cash-notes"].forEach((id) => { $(id).value = ""; });
+    $("cash-member").value = "";
+    $("cash-date").value = nowLocalInput();
+    ["cash-due", "cash-received", "cash-purpose", "cash-date"].forEach(poke);
+    $("cash-member").dispatchEvent(new Event("change"));
+  }
+
+  $("cash-submit").addEventListener("click", async () => {
+    const btn = $("cash-submit");
+    const error = $("cash-error");
+    const ok = $("cash-msg");
+    const amount = Number($("cash-due").value);
+    const received = Number($("cash-received").value);
+    error.textContent = "";
+    ok.textContent = "";
+
+    if (!(amount > 0)) {
+      error.textContent = "Enter a payment amount greater than zero.";
+      return;
+    }
+    if (received < amount) {
+      error.textContent = "Cash received is less than the amount due.";
+      return;
+    }
+
+    btn.disabled = true;
+    try {
+      const data = await api("/api/payments", {
+        method: "POST",
+        body: {
+          method: "cash",
+          memberId: $("cash-member").value,
+          purpose: $("cash-purpose").value.trim(),
+          amount: amount,
+          cashReceived: received,
+          paidAt: new Date($("cash-date").value).toISOString(),
+          notes: $("cash-notes").value.trim(),
+        },
+      });
+      payments.unshift(data.payment);
+      renderPayments();
+      resetCashForm();
+      ok.textContent = "Payment recorded · " + data.payment.reference;
+    } catch (err) {
+      error.textContent = err.message;
+      poke("cash-due"); // re-evaluate the button state
+    }
+  });
+
+  /* ----- GCash payment (demo) ----- */
+  function demoQr(seed) {
+    const N = 25;
+    const ns = "http://www.w3.org/2000/svg";
+    let h = 2166136261;
+    for (let i = 0; i < seed.length; i++) {
+      h ^= seed.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    const rnd = () => {
+      h ^= h << 13; h >>>= 0;
+      h ^= h >>> 17;
+      h ^= h << 5; h >>>= 0;
+      return h / 4294967296;
+    };
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("class", "demo-qr");
+    svg.setAttribute("viewBox", "0 0 " + N + " " + N);
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Demo QR code, not scannable");
+    const corners = [[0, 0], [N - 7, 0], [0, N - 7]];
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        let on = null;
+        for (let c = 0; c < corners.length; c++) {
+          const rx = x - corners[c][0];
+          const ry = y - corners[c][1];
+          if (rx >= -1 && rx <= 7 && ry >= -1 && ry <= 7) {
+            on = rx >= 0 && rx <= 6 && ry >= 0 && ry <= 6 &&
+              (rx === 0 || rx === 6 || ry === 0 || ry === 6 || (rx >= 2 && rx <= 4 && ry >= 2 && ry <= 4));
+            break;
+          }
+        }
+        if (on === null) on = rnd() > 0.55;
+        if (on) {
+          const r = document.createElementNS(ns, "rect");
+          r.setAttribute("x", x);
+          r.setAttribute("y", y);
+          r.setAttribute("width", 1);
+          r.setAttribute("height", 1);
+          r.setAttribute("fill", "#112218");
+          svg.appendChild(r);
+        }
+      }
+    }
+    return svg;
+  }
+
+  function showQr(p) {
+    gcashPayment = p;
+    const box = $("qr-output");
+    box.replaceChildren();
+    box.appendChild(demoQr(p.reference));
+    box.appendChild(el("h3", "", "Demo QR generated"));
+    box.appendChild(el("p", "", p.memberName + " · " + money(p.amount)));
+    box.appendChild(el("p", "hint", "Reference " + p.reference + " · Pending"));
+    const actions = el("div", "qr-actions");
+    actions.appendChild(button("Mark as paid", "btn btn-primary btn-sm", () => updateStatus(p.id, "paid")));
+    actions.appendChild(button("Cancel", "btn btn-outline btn-sm", () => updateStatus(p.id, "cancelled")));
+    box.appendChild(actions);
+  }
+
+  function showQrDone(p) {
+    const box = $("qr-output");
+    box.replaceChildren();
+    const ic = el("span", "empty-icon");
+    ic.appendChild(icon("i-check", 23));
+    box.appendChild(ic);
+    box.appendChild(el("h3", "", "Payment recorded"));
+    box.appendChild(el("p", "", p.memberName + " · " + money(p.amount)));
+    box.appendChild(el("p", "hint", "Reference " + p.reference));
+  }
+
+  function resetGcashForm() {
+    ["g-purpose", "g-amount", "g-notes"].forEach((id) => { $(id).value = ""; });
+    $("g-member").value = "";
+    $("g-date").value = nowLocalInput();
+    ["g-amount", "g-purpose", "g-date"].forEach(poke);
+    $("g-member").dispatchEvent(new Event("change"));
+  }
+
+  $("g-submit").addEventListener("click", async () => {
+    const btn = $("g-submit");
+    const error = $("g-error");
+    const amount = Number($("g-amount").value);
+    error.textContent = "";
+
+    if (!(amount > 0)) {
+      error.textContent = "Enter a payment amount greater than zero.";
+      return;
+    }
+
+    btn.disabled = true;
+    try {
+      const data = await api("/api/payments", {
+        method: "POST",
+        body: {
+          method: "gcash",
+          memberId: $("g-member").value,
+          purpose: $("g-purpose").value.trim(),
+          amount: amount,
+          paidAt: new Date($("g-date").value).toISOString(),
+          notes: $("g-notes").value.trim(),
+        },
+      });
+      payments.unshift(data.payment);
+      renderPayments();
+      showQr(data.payment);
+      resetGcashForm();
+    } catch (err) {
+      error.textContent = err.message;
+      poke("g-amount");
+    }
+  });
+
+  async function updateStatus(id, status) {
+    try {
+      const data = await api("/api/payments/" + encodeURIComponent(id) + "/status", { method: "PATCH", body: { status: status } });
+      payments = payments.map((p) => (p.id === id ? data.payment : p));
+      renderPayments();
+      if (gcashPayment && gcashPayment.id === id) {
+        if (status === "paid") showQrDone(data.payment);
+        else $("qr-output").innerHTML = emptyQr;
+        gcashPayment = null;
+      }
+    } catch (err) {
+      $("g-error").textContent = err.message;
+    }
+  }
+
+  /* =====================================================================
+     START: set defaults, then load everything from the database
+     ===================================================================== */
+  $("cash-date").value = nowLocalInput();
+  $("g-date").value = nowLocalInput();
+  poke("cash-date");
+  poke("g-date");
+
+  renderMembers();
+  renderPayments();
+
+  Promise.all([api("/api/members"), api("/api/payments")])
+    .then((results) => {
+      members = results[0].members || [];
+      payments = results[1].payments || [];
+      membersState = "ready";
+      $("members-footer-note").textContent = "Synced with MongoDB";
+      setText('[data-field="analytics-status"]', "Synced with MongoDB");
+    })
+    .catch((err) => {
+      membersState = "error";
+      loadMessage = err.message;
+      $("members-footer-note").textContent = "Not connected";
+      setText('[data-field="analytics-status"]', "Not connected: " + err.message);
+    })
+    .then(() => {
+      renderMembers();
+      renderPayments();
+    });
 }
 
 if (document.body && document.body.classList.contains("dashboard")) {
-  initDashboard();
-  initMembers();
+  if (!localStorage.getItem("token")) {
+    window.location.replace("index.html"); // not signed in
+  } else {
+    initDashboard();
+    initData();
+  }
 }

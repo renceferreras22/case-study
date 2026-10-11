@@ -1768,3 +1768,91 @@ body.dashboard .card-head h2,
 body.dashboard .modal-head h2 {
   color: var(--head);
 }
+
+/* ---------- Payments + database states (scoped to body.dashboard) ---------- */
+body.dashboard .records-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+body.dashboard .records-table tbody tr:hover td {
+  background: var(--bg);
+}
+
+body.dashboard .form-ok {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+body.dashboard .form-ok:empty {
+  display: none;
+}
+
+body.dashboard .pill.status-pending {
+  background: rgba(242, 106, 33, 0.12);
+  color: #b4470f;
+}
+
+body.dashboard .pill.status-cancelled {
+  background: #eceff0;
+  color: var(--muted);
+}
+
+body.dashboard .status-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.dashboard .icon-btn.ok:hover {
+  background: var(--mint);
+  color: var(--green);
+}
+
+body.dashboard .qr-box .qr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+body.dashboard .qr-box .hint {
+  word-break: break-all;
+}
+
+body.dashboard svg.demo-qr {
+  width: 148px;
+  height: 148px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+body.dashboard svg.trend {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+body.dashboard svg.trend rect {
+  fill: var(--green);
+}
+
+body.dashboard svg.trend text {
+  fill: var(--muted);
+  font-size: 11px;
+  text-anchor: middle;
+}
+
+body.dashboard svg.trend text.val {
+  fill: var(--ink);
+  font-weight: 600;
+}
+
+body.dashboard svg.trend line {
+  stroke: var(--line);
+}

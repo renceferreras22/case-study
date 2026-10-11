@@ -235,7 +235,7 @@
                 <p id="members-empty-text">Add your first member to build the directory.</p>
               </div>
             </div>
-            <div class="tfoot"><span id="members-footer-count"></span><span>Saved in this browser</span></div>
+            <div class="tfoot"><span id="members-footer-count"></span><span id="members-footer-note">Connecting to database…</span></div>
           </div>
         </section>
 
@@ -263,7 +263,7 @@
                 </div>
                 <div class="form-field">
                   <label for="cash-purpose">Payment purpose *</label>
-                  <div class="control"><select id="cash-purpose" required><option value="" selected disabled hidden>Select payment purpose</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
+                  <div class="control"><input id="cash-purpose" type="text" list="purpose-options" placeholder="Select or type a purpose" maxlength="120" required autocomplete="off" /></div>
                 </div>
               </div>
               <div class="row">
@@ -284,6 +284,8 @@
                 <label for="cash-notes">Notes (optional)</label>
                 <div class="control"><input id="cash-notes" type="text" placeholder="Add a note about this payment" /></div>
               </div>
+              <p class="form-error" id="cash-error" role="alert"></p>
+              <p class="form-ok" id="cash-msg" role="status"></p>
               <div class="actions">
                 <small>* Required fields</small>
                 <button type="button" class="btn" id="cash-submit" disabled><svg class="i" width="16" height="16"><use href="#i-check" /></svg>Record cash payment</button>
@@ -311,7 +313,7 @@
                 </div>
                 <div class="form-field">
                   <label for="g-purpose">Payment purpose</label>
-                  <div class="control"><select id="g-purpose"><option value="" selected disabled hidden>Select payment purpose</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
+                  <div class="control"><input id="g-purpose" type="text" list="purpose-options" placeholder="Select or type a purpose" maxlength="120" autocomplete="off" /></div>
                 </div>
               </div>
               <div class="row">
@@ -332,6 +334,7 @@
                 <svg class="i" width="18" height="18"><use href="#i-info" /></svg>
                 <div><b>School demo only</b><p>Fictional accounts only. No real money is transferred.</p></div>
               </div>
+              <p class="form-error" id="g-error" role="alert"></p>
               <div class="actions">
                 <small>Required fields</small>
                 <button type="button" class="btn" id="g-submit" disabled><svg class="i" width="16" height="16"><use href="#i-scan" /></svg>Generate QR</button>
@@ -355,7 +358,8 @@
               <a class="btn btn-outline" href="#analytics"><svg class="i" width="16" height="16"><use href="#i-arrow" /></svg>View analytics</a>
             </div>
             <div class="table-wrap">
-              <table style="min-width:720px">
+              <table class="records-table" style="min-width:900px">
+                <colgroup><col style="width:16%" /><col style="width:14%" /><col style="width:8%" /><col style="width:12%" /><col style="width:17%" /><col style="width:15%" /><col style="width:18%" /></colgroup>
                 <thead><tr><th>Member</th><th>Purpose</th><th>Method</th><th>Amount (PHP)</th><th>Date</th><th>Reference</th><th>Status</th></tr></thead>
                 <tbody id="payment-history-body"></tbody>
               </table>
@@ -409,7 +413,7 @@
 
           <div class="grid g-main-side">
             <div class="card">
-              <div class="card-head"><div><h2>Payments over time</h2><p>Chart requires recorded payments.</p></div></div>
+              <div class="card-head"><div><h2>Payments over time</h2><p id="trend-sub">Chart requires recorded payments.</p></div></div>
               <div class="chart" id="payments-chart">
                 <div class="empty">
                   <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-chart" /></svg></span>
@@ -440,7 +444,7 @@
               <div class="card-head"><div><h2>Membership</h2><p>Based on saved member records.</p></div></div>
               <div class="summary-row"><span>Total members</span><output data-field="total-members"></output></div>
               <div class="summary-row"><span>Active memberships</span><output data-field="active-memberships"></output></div>
-              <p class="hint">No members registered yet.</p>
+              <p class="hint" id="hint-members">No members registered yet.</p>
             </div>
             <div class="card">
               <div class="card-head"><div><h2>Check-ins</h2><p>Attendance across recorded visits.</p></div></div>
@@ -463,20 +467,21 @@
               <div class="form-field">
                 <label for="filter-method">Method</label>
                 <div class="control">
-                  <select id="filter-method"><option value="" selected>All methods</option></select>
+                  <select id="filter-method"><option value="" selected>All methods</option><option value="cash">Cash</option><option value="gcash">GCash</option></select>
                   <svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg>
                 </div>
               </div>
             </div>
             <div class="table-wrap">
-              <table style="min-width:640px">
+              <table class="records-table" style="min-width:760px">
+                <colgroup><col style="width:19%" /><col style="width:17%" /><col style="width:10%" /><col style="width:14%" /><col style="width:22%" /><col style="width:18%" /></colgroup>
                 <thead><tr><th>Member</th><th>Purpose</th><th>Method</th><th>Amount (PHP)</th><th>Date &amp; time</th><th>Reference</th></tr></thead>
                 <tbody id="all-records-body"></tbody>
               </table>
               <div class="empty">
                 <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-receipt" /></svg></span>
-                <h3>No payments recorded</h3>
-                <p>Record a cash payment or GCash payment to build your transaction history.</p>
+                <h3 id="records-empty-title">No payments recorded</h3>
+                <p id="records-empty-text">Record a cash payment or GCash payment to build your transaction history.</p>
               </div>
             </div>
             <div class="tfoot"><span data-field="records-footer-count"></span><span data-field="records-footer-context"></span></div>
@@ -489,6 +494,14 @@
         <span>All payment amounts in PHP</span>
       </footer>
     </div>
+    <!-- Suggested payment purposes: edit, add or remove <option>s freely. Staff can also type anything. -->
+    <datalist id="purpose-options">
+      <option value="Membership fee"></option>
+      <option value="Day pass"></option>
+      <option value="Personal training"></option>
+      <option value="Other"></option>
+    </datalist>
+
     <!-- Add member -->
     <dialog class="modal" id="add-dialog" aria-labelledby="add-title">
       <form class="modal-body" id="member-form">
@@ -567,6 +580,7 @@
     <dialog class="modal small" id="confirm-dialog" aria-labelledby="confirm-title">
       <div class="modal-body">
         <div><h2 id="confirm-title">Delete this member?</h2><p class="confirm-text"><b id="confirm-name"></b> will be permanently removed from the directory. This can't be undone.</p></div>
+        <p class="form-error" id="confirm-error" role="alert"></p>
         <div class="modal-actions">
           <button type="button" class="btn btn-outline" data-close>Cancel</button>
           <button type="button" class="btn btn-danger solid" id="confirm-delete"><svg class="i" width="16" height="16"><use href="#i-trash" /></svg>Delete</button>
