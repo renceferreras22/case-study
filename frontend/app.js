@@ -213,6 +213,23 @@ async function api(path, options) {
   return data;
 }
 
+/* Shows the full name the user typed when creating their account (it is stored in the login token). */
+function showStaffName() {
+  const target = document.getElementById("staff-name");
+  if (!target) return;
+  try {
+    const payload = localStorage.getItem("token").split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const bytes = Uint8Array.from(atob(payload), (c) => c.charCodeAt(0));
+    const user = JSON.parse(new TextDecoder().decode(bytes));
+    if (user && typeof user.name === "string" && user.name.trim()) {
+      target.textContent = user.name.trim();
+      target.title = user.name.trim();
+    }
+  } catch (e) {
+    /* keep the default label */
+  }
+}
+
 function initData() {
   const $ = (id) => document.getElementById(id);
   const STATUS = { active: "Active", inactive: "Inactive" };
@@ -221,6 +238,9 @@ function initData() {
 
   let members = [];
   let payments = [];
+  let checkins = [];
+  let syncNote = "Connecting to database…";
+  let noteTimer = null;
   let membersState = "loading"; // loading | ready | error
   let loadMessage = "";
   let pendingDeleteId = null;
@@ -290,6 +310,25 @@ function initData() {
     return x.getFullYear() === d.getFullYear() && x.getMonth() === d.getMonth() && x.getDate() === d.getDate();
   };
   const sum = (list) => list.reduce((t, p) => t + p.amount, 0);
+  const fmtTime = (iso) => {
+    const d = new Date(iso);
+    return isNaN(d) ? "—" : d.toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit" });
+  };
+
+  // Footer note under the Member directory ("Synced with MongoDB", or a short error)
+  function setSyncNote(text) {
+    syncNote = text;
+    $("members-footer-note").textContent = text;
+    $("members-footer-note").classList.remove("note-error");
+  }
+
+  function flashNote(text) {
+    const note = $("members-footer-note");
+    note.textContent = text;
+    note.classList.add("note-error");
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => setSyncNote(syncNote), 5000);
+  }
 
   function initials(name) {
     const parts = name.trim().split(/\s+/);
@@ -354,7 +393,18 @@ function initData() {
     tr.appendChild(el("td", "", m.plan || "—"));
 
     const st = el("td");
-    st.appendChild(el("span", "pill status-" + m.status, STATUS[m.status] || m.status));
+    const stCell = el("div", "status-cell");
+    stCell.appendChild(el("span", "pill status-" + m.status, STATUS[m.status] || m.status));
+    const sw = el("button", "switch");
+    const nextLabel = m.status === "active" ? "inactive" : "active";
+    sw.type = "button";
+    sw.setAttribute("role", "switch");
+    sw.setAttribute("aria-checked", String(m.status === "active"));
+    sw.setAttribute("aria-label", "Mark " + m.name + " as " + nextLabel);
+    sw.title = "Mark as " + nextLabel;
+    sw.addEventListener("click", () => toggleStatus(m, sw));
+    stCell.appendChild(sw);
+    st.appendChild(stCell);
     tr.appendChild(st);
 
     tr.appendChild(el("td", "", fmtDate(m.joined)));
@@ -431,16 +481,42 @@ function initData() {
 
     updateMemberSummaries();
     fillMemberSelects();
+    renderCheckins();
+  }
+
+  /* ----- switch a member between active and inactive ----- */
+  async function toggleStatus(m, sw) {
+    const next = m.status === "active" ? "inactive" : "active";
+    sw.disabled = true;
+    try {
+      const data = await api("/api/members/" + encodeURIComponent(m.id) + "/status", { method: "PATCH", body: { status: next } });
+      members = members.map((x) => (x.id === m.id ? data.member : x));
+      renderMembers();
+    } catch (err) {
+      sw.disabled = false;
+      flashNote("Couldn't update status: " + err.message);
+    }
   }
 
   /* ----- add member ----- */
   $("add-member-btn").addEventListener("click", () => {
     $("member-form").reset();
+    syncCheckinBox();
     $("m-joined").value = todayISO();
     $("member-error").textContent = "";
     openDialog($("add-dialog"));
     $("m-name").focus();
   });
+
+  function syncCheckinBox() {
+    const box = $("m-checkin");
+    const inactive = $("m-status").value !== "active";
+    const wasDisabled = box.disabled;
+    box.disabled = inactive;
+    if (inactive) box.checked = false;
+    else if (wasDisabled) box.checked = true; // back to active: restore the default
+  }
+  $("m-status").addEventListener("change", syncCheckinBox);
 
   $("member-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -471,9 +547,11 @@ function initData() {
           status: $("m-status").value,
           joined: $("m-joined").value || todayISO(),
           notes: $("m-notes").value.trim(),
+          checkIn: $("m-checkin").checked && $("m-status").value === "active",
         },
       });
       members.unshift(data.member);
+      if (data.checkin) checkins.unshift(data.checkin);
       renderMembers();
       closeDialog($("add-dialog"));
     } catch (err) {
@@ -516,7 +594,9 @@ function initData() {
     btn.disabled = true;
     try {
       await api("/api/members/" + encodeURIComponent(pendingDeleteId), { method: "DELETE" });
-      members = members.filter((m) => m.id !== pendingDeleteId);
+      const goneId = pendingDeleteId;
+      members = members.filter((m) => m.id !== goneId);
+      checkins = checkins.map((c) => (c.member === goneId && !c.checkOutAt ? Object.assign({}, c, { checkOutAt: new Date().toISOString() }) : c));
       pendingDeleteId = null;
       renderMembers();
       closeDialog($("confirm-dialog"));
@@ -529,6 +609,109 @@ function initData() {
 
   $("member-search").addEventListener("input", renderMembers);
   $("member-status-filter").addEventListener("change", renderMembers);
+
+  /* =====================================================================
+     CHECK-INS (Dashboard: "Recent check-ins" and "Members in gym")
+     ===================================================================== */
+  function renderCheckins() {
+    const now = new Date();
+    const open = checkins.filter((c) => !c.checkOutAt);
+    const today = checkins.filter((c) => sameDay(c.checkInAt, now));
+    const ready = membersState === "ready";
+
+    // Recent check-ins: today's visits, newest first
+    const body = $("checkins-body");
+    body.replaceChildren();
+    today.forEach((c) => {
+      const tr = document.createElement("tr");
+      tr.appendChild(el("td", "", c.memberName));
+      tr.appendChild(el("td", "", fmtTime(c.checkInAt)));
+      tr.appendChild(el("td", "", c.checkOutAt ? fmtTime(c.checkOutAt) : "—"));
+      const st = el("td");
+      st.appendChild(el("span", "pill " + (c.checkOutAt ? "status-inactive" : "status-active"), c.checkOutAt ? "Checked out" : "In gym"));
+      tr.appendChild(st);
+      body.appendChild(tr);
+    });
+    setText('[data-field="checkins-count"]', today.length ? plural(today.length, "check-in", "check-ins") : "");
+    setText('[data-field="checkins-context"]', today.length ? "Newest first" : "");
+
+    // cards
+    setText('[data-field="members-in-gym"]', ready ? String(open.length) : "");
+    setText('[data-field="todays-checkins"]', ready ? String(today.length) : "");
+    setText('[data-field="present-count"]', open.length ? open.length + " present" : "");
+
+    // Members in gym: who is inside right now
+    const list = $("in-gym-list");
+    list.replaceChildren();
+    open.forEach((c) => {
+      const li = el("li", "gym-item");
+      const person = el("div", "person");
+      person.appendChild(el("span", "avatar", initials(c.memberName)));
+      const info = el("div");
+      info.appendChild(el("b", "", c.memberName));
+      info.appendChild(el("small", "", "Checked in " + fmtTime(c.checkInAt)));
+      person.appendChild(info);
+      li.appendChild(person);
+      const out = el("button", "btn btn-outline btn-sm", "Check out");
+      out.type = "button";
+      out.addEventListener("click", () => checkOut(c.id, out));
+      li.appendChild(out);
+      list.appendChild(li);
+    });
+    document.querySelector(".records-empty").hidden = open.length > 0;
+
+    // picker: active members who are not already inside
+    const sel = $("checkin-member");
+    const current = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    const inside = new Set(open.map((c) => c.member));
+    members
+      .filter((m) => m.status === "active" && !inside.has(m.id))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((m) => {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = m.name;
+        sel.appendChild(opt);
+      });
+    sel.value = Array.from(sel.options).some((o) => o.value === current) ? current : "";
+    $("checkin-btn").disabled = !sel.value;
+  }
+
+  $("checkin-member").addEventListener("change", () => {
+    $("checkin-btn").disabled = !$("checkin-member").value;
+  });
+
+  $("checkin-btn").addEventListener("click", async () => {
+    const btn = $("checkin-btn");
+    const error = $("checkin-error");
+    const memberId = $("checkin-member").value;
+    if (!memberId) return;
+    error.textContent = "";
+    btn.disabled = true;
+    try {
+      const data = await api("/api/checkins", { method: "POST", body: { memberId: memberId } });
+      checkins.unshift(data.checkin);
+      renderCheckins();
+    } catch (err) {
+      error.textContent = err.message;
+      btn.disabled = !$("checkin-member").value;
+    }
+  });
+
+  async function checkOut(id, btn) {
+    const error = $("checkin-error");
+    error.textContent = "";
+    btn.disabled = true;
+    try {
+      const data = await api("/api/checkins/" + encodeURIComponent(id) + "/checkout", { method: "PATCH" });
+      checkins = checkins.map((c) => (c.id === id ? data.checkin : c));
+      renderCheckins();
+    } catch (err) {
+      error.textContent = err.message;
+      btn.disabled = false;
+    }
+  }
 
   /* =====================================================================
      PAYMENTS
@@ -848,18 +1031,27 @@ function initData() {
   renderMembers();
   renderPayments();
 
-  Promise.all([api("/api/members"), api("/api/payments")])
+  // check-ins load separately, so a problem there never hides members or payments
+  const checkinsRequest = api("/api/checkins")
+    .then((r) => r.checkins || [])
+    .catch((err) => {
+      $("checkin-error").textContent = "Couldn't load check-ins: " + err.message;
+      return [];
+    });
+
+  Promise.all([api("/api/members"), api("/api/payments"), checkinsRequest])
     .then((results) => {
       members = results[0].members || [];
       payments = results[1].payments || [];
+      checkins = results[2];
       membersState = "ready";
-      $("members-footer-note").textContent = "Synced with MongoDB";
+      setSyncNote("Synced with MongoDB");
       setText('[data-field="analytics-status"]', "Synced with MongoDB");
     })
     .catch((err) => {
       membersState = "error";
       loadMessage = err.message;
-      $("members-footer-note").textContent = "Not connected";
+      setSyncNote("Not connected");
       setText('[data-field="analytics-status"]', "Not connected: " + err.message);
     })
     .then(() => {
@@ -872,6 +1064,7 @@ if (document.body && document.body.classList.contains("dashboard")) {
   if (!localStorage.getItem("token")) {
     window.location.replace("index.html"); // not signed in
   } else {
+    showStaffName();
     initDashboard();
     initData();
   }

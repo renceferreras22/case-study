@@ -1856,3 +1856,128 @@ body.dashboard svg.trend text.val {
 body.dashboard svg.trend line {
   stroke: var(--line);
 }
+
+/* ---------- Active / inactive switch (Member directory) ---------- */
+body.dashboard .switch {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 100px;
+  background: #c4cfc9;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+body.dashboard .switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s;
+}
+
+body.dashboard .switch[aria-checked="true"] {
+  background: var(--green);
+}
+
+body.dashboard .switch[aria-checked="true"]::after {
+  transform: translateX(14px);
+}
+
+body.dashboard .switch:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+body.dashboard .switch:focus-visible {
+  outline: 3px solid rgba(32, 122, 86, 0.45);
+  outline-offset: 2px;
+}
+
+body.dashboard .note-error {
+  color: #b3202a;
+}
+
+/* ---------- Check-ins (Dashboard) ---------- */
+body.dashboard .checkin-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.dashboard .checkin-bar .control {
+  flex: 1;
+  min-width: 0;
+}
+
+body.dashboard .gym-list {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+body.dashboard .gym-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+body.dashboard .gym-item:last-child {
+  border-bottom: 0;
+}
+
+body.dashboard .gym-item .person {
+  flex: 1;
+}
+
+body.dashboard .check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+body.dashboard .check-row small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+body.dashboard .check-row input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--green);
+}
+
+body.dashboard .check-row input:focus {
+  box-shadow: none;
+}
+
+/* ---------- Signed-in user's name in the sidebar ---------- */
+body.dashboard .staff > div {
+  min-width: 0;
+}
+
+body.dashboard .staff b {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}

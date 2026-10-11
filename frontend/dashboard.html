@@ -62,7 +62,7 @@
         <hr />
         <div class="staff">
           <span class="staff-mark"><svg class="i" width="17" height="17"><use href="#i-shield" /></svg></span>
-          <div><b>Staff workspace</b><span>Gym operations</span></div>
+          <div><b id="staff-name">Staff workspace</b><span>Gym operations</span></div>
         </div>
         <button type="button" class="logout" onclick="logout()"><svg class="i" width="17" height="17"><use href="#i-logout" /></svg>Log out</button>
       </div>
@@ -116,7 +116,8 @@
                 <span class="pill" data-field="checkins-range">Today</span>
               </div>
               <div class="table-wrap">
-                <table>
+                <table class="records-table" style="min-width:520px">
+                  <colgroup><col style="width:32%" /><col style="width:22%" /><col style="width:24%" /><col style="width:22%" /></colgroup>
                   <thead><tr><th>Member</th><th>Check-in time</th><th>Check-out time</th><th>Status</th></tr></thead>
                   <tbody id="checkins-body"></tbody>
                 </table>
@@ -134,7 +135,15 @@
                 <div><h2>Members in gym</h2><p>Members currently checked in.</p></div>
                 <span class="pill" data-field="present-count"></span>
               </div>
-              <ul id="in-gym-list" style="list-style:none;margin:0;padding:0"></ul>
+              <div class="checkin-bar">
+                <div class="control">
+                  <select id="checkin-member"><option value="" selected>Select a member</option></select>
+                  <svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg>
+                </div>
+                <button type="button" class="btn btn-primary" id="checkin-btn" disabled><svg class="i" width="16" height="16"><use href="#i-login" /></svg>Check in</button>
+              </div>
+              <p class="form-error" id="checkin-error" role="alert"></p>
+              <ul id="in-gym-list" class="gym-list" style="list-style:none;margin:0;padding:0"></ul>
               <div class="empty records-empty" style="min-height:253px">
                 <span class="empty-icon"><svg class="i" width="21" height="21"><use href="#i-users" /></svg></span>
                 <h3>The gym is empty</h3>
@@ -225,7 +234,7 @@
             </div>
             <div class="table-wrap">
               <table class="members-table" style="min-width:760px">
-                <colgroup><col style="width:30%" /><col style="width:16%" /><col style="width:16%" /><col style="width:12%" /><col style="width:14%" /><col style="width:12%" /></colgroup>
+                <colgroup><col style="width:26%" /><col style="width:14%" /><col style="width:14%" /><col style="width:18%" /><col style="width:14%" /><col style="width:14%" /></colgroup>
                 <thead><tr><th>Member</th><th>Phone</th><th>Plan</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
                 <tbody id="members-body"></tbody>
               </table>
@@ -544,6 +553,7 @@
           <label for="m-notes">Notes (optional)</label>
           <div class="control area"><textarea id="m-notes" rows="3" placeholder="Anything staff should know about this member"></textarea></div>
         </div>
+        <label class="check-row" for="m-checkin"><input id="m-checkin" type="checkbox" checked /><span>Check this member in now <small>(active members only)</small></span></label>
         <p class="form-error" id="member-error" role="alert"></p>
         <div class="modal-actions">
           <button type="button" class="btn btn-outline" data-close>Cancel</button>

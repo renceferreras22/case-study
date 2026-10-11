@@ -189,6 +189,20 @@ const paymentSchema = new mongoose.Schema(
 
 const Payment = mongoose.model("Payment", paymentSchema);
 
+// One document per visit. checkOutAt stays null while the member is still in the gym.
+const checkinSchema = new mongoose.Schema(
+  {
+    member: { type: mongoose.Schema.Types.ObjectId, ref: "Member" },
+    memberName: { type: String, required: true, trim: true, maxlength: 120 },
+    checkInAt: { type: Date, required: true },
+    checkOutAt: { type: Date, default: null },
+    createdBy: { type: String, default: "" },
+  },
+  { timestamps: true, collection: "checkins", toJSON: toJSONOptions },
+);
+
+const Checkin = mongoose.model("Checkin", checkinSchema);
+
 /* ---------- members ---------- */
 
 app.get("/api/members", requireAuth, async (req, res) => {
@@ -236,7 +250,44 @@ app.post("/api/members", requireAuth, async (req, res) => {
       createdBy: req.user.email,
     });
 
-    res.status(201).json({ member });
+    // Optionally record a check-in at the same time (active members only).
+    let checkin = null;
+    if (body.checkIn === true && member.status === "active") {
+      checkin = await Checkin.create({
+        member: member._id,
+        memberName: member.name,
+        checkInAt: new Date(),
+        createdBy: req.user.email,
+      });
+    }
+
+    res.status(201).json({ member, checkin });
+  } catch (error) {
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
+// Switch a member between active and inactive.
+app.patch("/api/members/:id/status", requireAuth, async (req, res) => {
+  try {
+    const status = (req.body || {}).status;
+
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({ message: "Invalid member id." });
+    }
+    if (status !== "active" && status !== "inactive") {
+      return res.status(400).json({ message: "Status must be active or inactive." });
+    }
+
+    const member = await Member.findById(req.params.id);
+    if (!member) {
+      return res.status(404).json({ message: "Member not found." });
+    }
+
+    member.status = status;
+    await member.save();
+
+    res.json({ member });
   } catch (error) {
     res.status(500).json({ message: "Server error." });
   }
@@ -252,6 +303,11 @@ app.delete("/api/members/:id", requireAuth, async (req, res) => {
     if (!deleted) {
       return res.status(404).json({ message: "Member not found." });
     }
+
+    await Checkin.updateMany(
+      { member: req.params.id, checkOutAt: null },
+      { checkOutAt: new Date() },
+    );
 
     res.json({ message: "Member deleted." });
   } catch (error) {
@@ -366,6 +422,72 @@ app.patch("/api/payments/:id/status", requireAuth, async (req, res) => {
     await payment.save();
 
     res.json({ payment });
+  } catch (error) {
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
+/* ---------- check-ins ---------- */
+
+app.get("/api/checkins", requireAuth, async (req, res) => {
+  try {
+    const checkins = await Checkin.find().sort({ checkInAt: -1 }).limit(1000);
+    res.json({ checkins });
+  } catch (error) {
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
+app.post("/api/checkins", requireAuth, async (req, res) => {
+  try {
+    const memberId = (req.body || {}).memberId;
+
+    if (typeof memberId !== "string" || !mongoose.isObjectIdOrHexString(memberId)) {
+      return res.status(400).json({ message: "Select a member." });
+    }
+
+    const member = await Member.findById(memberId);
+    if (!member) {
+      return res.status(404).json({ message: "Member not found." });
+    }
+    if (member.status !== "active") {
+      return res.status(400).json({ message: "Inactive members can't check in." });
+    }
+    if (await Checkin.findOne({ member: member._id, checkOutAt: null })) {
+      return res.status(409).json({ message: `${member.name} is already in the gym.` });
+    }
+
+    const checkin = await Checkin.create({
+      member: member._id,
+      memberName: member.name,
+      checkInAt: new Date(),
+      createdBy: req.user.email,
+    });
+
+    res.status(201).json({ checkin });
+  } catch (error) {
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
+app.patch("/api/checkins/:id/checkout", requireAuth, async (req, res) => {
+  try {
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({ message: "Invalid check-in id." });
+    }
+
+    const checkin = await Checkin.findById(req.params.id);
+    if (!checkin) {
+      return res.status(404).json({ message: "Check-in not found." });
+    }
+    if (checkin.checkOutAt) {
+      return res.status(409).json({ message: "This member is already checked out." });
+    }
+
+    checkin.checkOutAt = new Date();
+    await checkin.save();
+
+    res.json({ checkin });
   } catch (error) {
     res.status(500).json({ message: "Server error." });
   }
