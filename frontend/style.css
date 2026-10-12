@@ -2064,3 +2064,12 @@ body.dashboard .combo-list li.is-current {
   font-weight: 600;
   color: var(--green);
 }
+
+/* ---------- Plan -> expiry auto-fill note ---------- */
+body.dashboard #plan-hint {
+  margin-top: -8px;
+}
+
+body.dashboard #plan-hint:empty {
+  display: none;
+}

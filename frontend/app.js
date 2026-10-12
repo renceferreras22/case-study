@@ -575,6 +575,7 @@ function initData() {
     planInput.value = value;
     closePlanList();
     planInput.focus();
+    applyPlanDefaults(value);
     if (value === "Others") planInput.select(); // so you can type your own name straight away
   }
 
@@ -607,6 +608,46 @@ function initData() {
     }
   });
 
+  /* ----- choosing a plan fills in the expiry date ----- */
+  // Day Pass = today, Monthly = +1 month, Yearly = +1 year (counted from today), Others = no date.
+  // A date you set yourself is never overwritten: only an empty date, a date already in the past,
+  // or a date that an earlier plan choice filled in can be replaced.
+  let expiryAuto = false;
+
+  function applyPlanDefaults(name) {
+    const hint = $("plan-hint");
+    const expiry = $("m-expires");
+    const today = todayISO();
+    const key = name.trim().toLowerCase();
+    const dates = { "day pass": today, monthly: addMonths(today, 1), yearly: addMonths(today, 12) };
+    const canWrite = expiryAuto || !expiry.value || expiry.value < today;
+
+    if (key === "others") {
+      if (expiryAuto) {
+        expiry.value = "";
+        expiryAuto = false;
+        hint.textContent = "No expiry date set. Pick one below if this plan ends.";
+      } else {
+        hint.textContent = "";
+      }
+    } else if (dates[key]) {
+      if (canWrite) {
+        expiry.value = dates[key];
+        expiryAuto = true;
+        hint.textContent = "Expiry date set to " + fmtDate(dates[key]) + " for " + name.trim() + ". You can change it.";
+      } else {
+        hint.textContent = "Expiry date kept at " + fmtDate(expiry.value) + ". Use +1 month or +1 year to extend it.";
+      }
+    } else {
+      hint.textContent = ""; // a custom plan name: leave the date alone
+    }
+    syncCheckinBox();
+  }
+
+  planInput.addEventListener("input", () => applyPlanDefaults(planInput.value)); // typed "Monthly" etc.
+  // any hand edit of the date means "this one is mine": plan changes won't overwrite it
+  $("m-expires").addEventListener("input", () => { expiryAuto = false; });
+
   // One form, two modes: add a member, or edit an existing one.
   let editingId = null;
 
@@ -614,6 +655,8 @@ function initData() {
     editingId = m ? m.id : null;
     $("member-form").reset();
     closePlanList();
+    expiryAuto = false;
+    $("plan-hint").textContent = "";
     $("add-title").textContent = m ? "Edit member" : "Add member";
     $("add-desc").textContent = m ? "Update this member's details, plan or expiry date." : "Enter the member's details. Fields marked * are required.";
     $("member-submit-label").textContent = m ? "Save changes" : "Save member";
@@ -642,6 +685,8 @@ function initData() {
   document.querySelectorAll("[data-extend]").forEach((b) => {
     b.addEventListener("click", () => {
       const kind = b.dataset.extend;
+      expiryAuto = false;
+      $("plan-hint").textContent = "";
       if (kind === "none") {
         $("m-expires").value = "";
       } else {
