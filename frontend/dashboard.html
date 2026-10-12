@@ -538,7 +538,18 @@
         <div class="row">
           <div class="form-field">
             <label for="m-plan">Membership plan</label>
-            <div class="control"><input id="m-plan" type="text" placeholder="e.g. plan name" autocomplete="off" /></div>
+            <div class="combo">
+              <div class="control">
+                <input id="m-plan" type="text" placeholder="Select or type a plan" maxlength="120" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="plan-list" />
+                <button type="button" class="combo-btn" id="plan-toggle" tabindex="-1" aria-label="Show plan options"><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></button>
+              </div>
+              <ul class="combo-list" id="plan-list" role="listbox" aria-label="Membership plans" hidden>
+                <li role="option" data-value="Day Pass">Day Pass</li>
+                <li role="option" data-value="Monthly">Monthly</li>
+                <li role="option" data-value="Yearly">Yearly</li>
+                <li role="option" data-value="Others">Others</li>
+              </ul>
+            </div>
           </div>
           <div class="form-field" id="m-status-field">
             <label for="m-status">Status</label>

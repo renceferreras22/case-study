@@ -543,12 +543,77 @@ function initData() {
   }
 
   /* ----- add member ----- */
+  /* ----- membership plan: a dropdown you can also type in ----- */
+  const planInput = $("m-plan");
+  const planList = $("plan-list");
+  const planItems = Array.from(planList.querySelectorAll("li"));
+  let planActive = -1;
+
+  function markPlanItems() {
+    const typed = planInput.value.trim().toLowerCase();
+    planItems.forEach((li, i) => {
+      li.classList.toggle("is-current", li.dataset.value.toLowerCase() === typed);
+      li.classList.toggle("is-active", i === planActive);
+      li.setAttribute("aria-selected", i === planActive ? "true" : "false");
+    });
+  }
+
+  function openPlanList() {
+    planList.hidden = false;
+    planInput.setAttribute("aria-expanded", "true");
+    markPlanItems();
+  }
+
+  function closePlanList() {
+    planList.hidden = true;
+    planInput.setAttribute("aria-expanded", "false");
+    planActive = -1;
+  }
+
+  function choosePlan(i) {
+    const value = planItems[i].dataset.value;
+    planInput.value = value;
+    closePlanList();
+    planInput.focus();
+    if (value === "Others") planInput.select(); // so you can type your own name straight away
+  }
+
+  planItems.forEach((li, i) => {
+    li.addEventListener("mousedown", (e) => e.preventDefault()); // keep focus in the field
+    li.addEventListener("click", () => choosePlan(i));
+    li.addEventListener("mousemove", () => { planActive = i; markPlanItems(); });
+  });
+  $("plan-toggle").addEventListener("mousedown", (e) => e.preventDefault());
+  $("plan-toggle").addEventListener("click", () => {
+    if (planList.hidden) { openPlanList(); planInput.focus(); } else closePlanList();
+  });
+  planInput.addEventListener("focus", openPlanList);
+  planInput.addEventListener("click", openPlanList);
+  planInput.addEventListener("input", closePlanList); // typing your own plan: get the list out of the way
+  planInput.addEventListener("blur", closePlanList);
+  planInput.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (planList.hidden) openPlanList();
+      planActive = e.key === "ArrowDown" ? Math.min(planItems.length - 1, planActive + 1) : Math.max(0, planActive - 1);
+      markPlanItems();
+    } else if (e.key === "Enter" && !planList.hidden && planActive >= 0) {
+      e.preventDefault();
+      choosePlan(planActive);
+    } else if (e.key === "Escape" && !planList.hidden) {
+      e.preventDefault(); // close just the list, not the whole dialog
+      e.stopPropagation();
+      closePlanList();
+    }
+  });
+
   // One form, two modes: add a member, or edit an existing one.
   let editingId = null;
 
   function openMemberForm(m) {
     editingId = m ? m.id : null;
     $("member-form").reset();
+    closePlanList();
     $("add-title").textContent = m ? "Edit member" : "Add member";
     $("add-desc").textContent = m ? "Update this member's details, plan or expiry date." : "Enter the member's details. Fields marked * are required.";
     $("member-submit-label").textContent = m ? "Save changes" : "Save member";
