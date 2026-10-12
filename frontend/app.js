@@ -855,6 +855,10 @@ function initData() {
     setText('[data-field="members-in-gym"]', ready ? String(open.length) : "");
     setText('[data-field="todays-checkins"]', ready ? String(today.length) : "");
     setText('[data-field="present-count"]', open.length ? open.length + " present" : "");
+    // Analytics > Check-ins card
+    setText('[data-field="total-checkins"]', ready ? String(checkins.length) : "");
+    setText('[data-field="current-in-gym"]', ready ? String(open.length) : "");
+    $("hint-checkins").hidden = !ready || checkins.length > 0;
 
     // Members in gym: who is inside right now
     const list = $("in-gym-list");
