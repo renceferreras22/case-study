@@ -35,6 +35,7 @@
       <symbol id="i-badge" viewBox="0 0 24 24"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></symbol>
       <symbol id="i-user-x" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" x2="22" y1="8" y2="13"/><line x1="22" x2="17" y1="8" y2="13"/></symbol>
       <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
       <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
     </svg>
 
@@ -201,7 +202,7 @@
             <div class="metric">
               <div class="metric-top">Inactive <svg class="i" width="19" height="19"><use href="#i-user-x" /></svg></div>
               <p class="metric-value" data-field="members-inactive"></p>
-              <p class="metric-note">Members marked inactive</p>
+              <p class="metric-note">Inactive or expired members</p>
             </div>
             <div class="metric">
               <div class="metric-top">Joined this month <svg class="i" width="19" height="19"><use href="#i-user-plus" /></svg></div>
@@ -227,15 +228,17 @@
                     <option value="" selected>All statuses</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
+                    <option value="expired">Expired</option>
+                    <option value="expiring">Expiring in 7 days</option>
                   </select>
                   <svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg>
                 </div>
               </div>
             </div>
             <div class="table-wrap">
-              <table class="members-table" style="min-width:760px">
-                <colgroup><col style="width:26%" /><col style="width:14%" /><col style="width:14%" /><col style="width:18%" /><col style="width:14%" /><col style="width:14%" /></colgroup>
-                <thead><tr><th>Member</th><th>Phone</th><th>Plan</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+              <table class="members-table" style="min-width:900px">
+                <colgroup><col style="width:22%" /><col style="width:12%" /><col style="width:12%" /><col style="width:17%" /><col style="width:12%" /><col style="width:12%" /><col style="width:13%" /></colgroup>
+                <thead><tr><th>Member</th><th>Phone</th><th>Plan</th><th>Status</th><th>Joined</th><th>Expires</th><th>Actions</th></tr></thead>
                 <tbody id="members-body"></tbody>
               </table>
               <div class="empty">
@@ -515,7 +518,7 @@
     <dialog class="modal" id="add-dialog" aria-labelledby="add-title">
       <form class="modal-body" id="member-form">
         <div class="modal-head">
-          <div><h2 id="add-title">Add member</h2><p>Enter the member's details. Fields marked * are required.</p></div>
+          <div><h2 id="add-title">Add member</h2><p id="add-desc">Enter the member's details. Fields marked * are required.</p></div>
           <button type="button" class="icon-btn" data-close aria-label="Close"><svg class="i" width="18" height="18"><use href="#i-x" /></svg></button>
         </div>
         <div class="form-field">
@@ -537,7 +540,7 @@
             <label for="m-plan">Membership plan</label>
             <div class="control"><input id="m-plan" type="text" placeholder="e.g. plan name" autocomplete="off" /></div>
           </div>
-          <div class="form-field">
+          <div class="form-field" id="m-status-field">
             <label for="m-status">Status</label>
             <div class="control">
               <select id="m-status"><option value="active" selected>Active</option><option value="inactive">Inactive</option></select>
@@ -545,19 +548,31 @@
             </div>
           </div>
         </div>
-        <div class="form-field">
-          <label for="m-joined">Join date</label>
-          <div class="control"><input id="m-joined" type="date" /></div>
+        <div class="row">
+          <div class="form-field">
+            <label for="m-joined">Join date</label>
+            <div class="control"><input id="m-joined" type="date" /></div>
+          </div>
+          <div class="form-field">
+            <label for="m-expires">Membership expires on <small>(optional)</small></label>
+            <div class="control"><input id="m-expires" type="date" /></div>
+          </div>
+        </div>
+        <div class="quick-row">
+          <span>Set expiry from today (or the current expiry, if later):</span>
+          <button type="button" class="btn btn-outline btn-sm" data-extend="1m">+1 month</button>
+          <button type="button" class="btn btn-outline btn-sm" data-extend="1y">+1 year</button>
+          <button type="button" class="btn btn-outline btn-sm" data-extend="none">No expiry</button>
         </div>
         <div class="form-field">
           <label for="m-notes">Notes (optional)</label>
           <div class="control area"><textarea id="m-notes" rows="3" placeholder="Anything staff should know about this member"></textarea></div>
         </div>
-        <label class="check-row" for="m-checkin"><input id="m-checkin" type="checkbox" checked /><span>Check this member in now <small>(active members only)</small></span></label>
+        <label class="check-row" id="m-checkin-row" for="m-checkin"><input id="m-checkin" type="checkbox" checked /><span>Check this member in now <small>(active, non-expired members only)</small></span></label>
         <p class="form-error" id="member-error" role="alert"></p>
         <div class="modal-actions">
           <button type="button" class="btn btn-outline" data-close>Cancel</button>
-          <button type="submit" class="btn btn-primary"><svg class="i" width="16" height="16"><use href="#i-check" /></svg>Save member</button>
+          <button type="submit" class="btn btn-primary"><svg class="i" width="16" height="16"><use href="#i-check" /></svg><span id="member-submit-label">Save member</span></button>
         </div>
       </form>
     </dialog>
@@ -577,10 +592,12 @@
           <div><dt>Phone</dt><dd id="md-phone"></dd></div>
           <div><dt>Membership plan</dt><dd id="md-plan"></dd></div>
           <div><dt>Join date</dt><dd id="md-joined"></dd></div>
+          <div><dt>Membership expires</dt><dd id="md-expires"></dd></div>
           <div class="wide"><dt>Notes</dt><dd id="md-notes"></dd></div>
         </dl>
         <div class="modal-actions">
           <button type="button" class="btn btn-danger" id="md-delete"><svg class="i" width="16" height="16"><use href="#i-trash" /></svg>Delete member</button>
+          <button type="button" class="btn btn-primary" id="md-edit"><svg class="i" width="16" height="16"><use href="#i-edit" /></svg>Edit member</button>
           <button type="button" class="btn btn-outline" data-close>Close</button>
         </div>
       </div>

@@ -232,7 +232,7 @@ function showStaffName() {
 
 function initData() {
   const $ = (id) => document.getElementById(id);
-  const STATUS = { active: "Active", inactive: "Inactive" };
+  const STATUS = { active: "Active", inactive: "Inactive", expired: "Expired" };
   const PAY_STATUS = { paid: "Paid", pending: "Pending", cancelled: "Cancelled" };
   const METHOD = { cash: "Cash", gcash: "GCash" };
 
@@ -310,6 +310,36 @@ function initData() {
     return x.getFullYear() === d.getFullYear() && x.getMonth() === d.getMonth() && x.getDate() === d.getDate();
   };
   const sum = (list) => list.reduce((t, p) => t + p.amount, 0);
+  // A member is "expired" when their status is active but the expiry date has passed.
+  function memberState(m) {
+    if (m.status !== "active") return "inactive";
+    if (m.expiresAt && m.expiresAt < todayISO()) return "expired";
+    return "active";
+  }
+
+  function daysLeft(iso) {
+    const today = new Date(todayISO() + "T00:00:00");
+    const end = new Date(iso + "T00:00:00");
+    return Math.round((end - today) / 86400000);
+  }
+
+  function expiryNote(iso) {
+    const d = daysLeft(iso);
+    if (d < 0) return "expired " + plural(-d, "day", "days") + " ago";
+    if (d === 0) return "expires today";
+    return plural(d, "day", "days") + " left";
+  }
+
+  // Add n months to a YYYY-MM-DD date, clamping to the end of shorter months (Jan 31 + 1 month = Feb 28).
+  function addMonths(iso, n) {
+    const parts = iso.split("-").map(Number);
+    const total = parts[0] * 12 + (parts[1] - 1) + n;
+    const year = Math.floor(total / 12);
+    const month = total % 12;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    return year + "-" + pad(month + 1) + "-" + pad(Math.min(parts[2], lastDay));
+  }
+
   const fmtTime = (iso) => {
     const d = new Date(iso);
     return isNaN(d) ? "—" : d.toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit" });
@@ -372,7 +402,12 @@ function initData() {
     const q = $("member-search").value.trim().toLowerCase();
     const status = $("member-status-filter").value;
     return members
-      .filter((m) => !status || m.status === status)
+      .filter((m) => {
+        if (!status) return true;
+        const state = memberState(m);
+        if (status === "expiring") return state === "active" && m.expiresAt && daysLeft(m.expiresAt) <= 7;
+        return state === status;
+      })
       .filter((m) => !q || [m.name, m.email, m.phone, m.plan].some((v) => (v || "").toLowerCase().includes(q)));
   }
 
@@ -394,7 +429,8 @@ function initData() {
 
     const st = el("td");
     const stCell = el("div", "status-cell");
-    stCell.appendChild(el("span", "pill status-" + m.status, STATUS[m.status] || m.status));
+    const state = memberState(m);
+    stCell.appendChild(el("span", "pill status-" + state, STATUS[state]));
     const sw = el("button", "switch");
     const nextLabel = m.status === "active" ? "inactive" : "active";
     sw.type = "button";
@@ -409,6 +445,14 @@ function initData() {
 
     tr.appendChild(el("td", "", fmtDate(m.joined)));
 
+    const exp = el("td", "", m.expiresAt ? fmtDate(m.expiresAt) : "—");
+    if (m.expiresAt) {
+      exp.title = "Membership " + expiryNote(m.expiresAt);
+      if (state === "expired") exp.className = "expiry-past";
+      else if (state === "active" && daysLeft(m.expiresAt) <= 7) exp.className = "expiry-soon";
+    }
+    tr.appendChild(exp);
+
     const actions = el("td");
     const wrap = el("div", "row-actions");
     wrap.appendChild(button("View", "btn btn-outline btn-sm", () => showDetails(m)));
@@ -420,7 +464,7 @@ function initData() {
 
   function updateMemberSummaries() {
     const month = todayISO().slice(0, 7);
-    const active = members.filter((m) => m.status === "active").length;
+    const active = members.filter((m) => memberState(m) === "active").length;
     const joinedThisMonth = members.filter((m) => (m.joined || "").slice(0, 7) === month).length;
     const ready = membersState === "ready";
     const show = (n) => (ready ? String(n) : "");
@@ -499,24 +543,63 @@ function initData() {
   }
 
   /* ----- add member ----- */
-  $("add-member-btn").addEventListener("click", () => {
+  // One form, two modes: add a member, or edit an existing one.
+  let editingId = null;
+
+  function openMemberForm(m) {
+    editingId = m ? m.id : null;
     $("member-form").reset();
+    $("add-title").textContent = m ? "Edit member" : "Add member";
+    $("add-desc").textContent = m ? "Update this member's details, plan or expiry date." : "Enter the member's details. Fields marked * are required.";
+    $("member-submit-label").textContent = m ? "Save changes" : "Save member";
+    $("m-status-field").hidden = Boolean(m); // status has its own switch in the directory
+    $("m-checkin-row").hidden = Boolean(m);
+    if (m) {
+      $("m-name").value = m.name;
+      $("m-email").value = m.email || "";
+      $("m-phone").value = m.phone || "";
+      $("m-plan").value = m.plan || "";
+      $("m-joined").value = m.joined || "";
+      $("m-expires").value = m.expiresAt || "";
+      $("m-notes").value = m.notes || "";
+    } else {
+      $("m-joined").value = todayISO();
+    }
     syncCheckinBox();
-    $("m-joined").value = todayISO();
     $("member-error").textContent = "";
     openDialog($("add-dialog"));
     $("m-name").focus();
+  }
+
+  $("add-member-btn").addEventListener("click", () => openMemberForm(null));
+
+  // quick-set buttons for the expiry date
+  document.querySelectorAll("[data-extend]").forEach((b) => {
+    b.addEventListener("click", () => {
+      const kind = b.dataset.extend;
+      if (kind === "none") {
+        $("m-expires").value = "";
+      } else {
+        const current = $("m-expires").value;
+        const base = current && current > todayISO() ? current : todayISO();
+        $("m-expires").value = addMonths(base, kind === "1y" ? 12 : 1);
+      }
+      syncCheckinBox();
+    });
   });
 
   function syncCheckinBox() {
     const box = $("m-checkin");
-    const inactive = $("m-status").value !== "active";
+    const expired = $("m-expires").value && $("m-expires").value < todayISO();
+    const inactive = $("m-status").value !== "active" || Boolean(expired);
     const wasDisabled = box.disabled;
     box.disabled = inactive;
     if (inactive) box.checked = false;
     else if (wasDisabled) box.checked = true; // back to active: restore the default
   }
   $("m-status").addEventListener("change", syncCheckinBox);
+  $("m-expires").addEventListener("input", syncCheckinBox);
+  $("m-expires").addEventListener("change", syncCheckinBox);
 
   $("member-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -524,34 +607,51 @@ function initData() {
     const submit = e.target.querySelector('button[type="submit"]');
     const name = $("m-name").value.trim().replace(/\s+/g, " ");
     const email = $("m-email").value.trim();
+    const joined = $("m-joined").value || todayISO();
+    const expiresAt = $("m-expires").value;
 
     if (!name) {
       error.textContent = "Please enter the member's full name.";
       return;
     }
-    if (email && members.some((m) => (m.email || "").toLowerCase() === email.toLowerCase())) {
+    if (email && members.some((m) => m.id !== editingId && (m.email || "").toLowerCase() === email.toLowerCase())) {
       error.textContent = "A member with this email address already exists.";
       return;
     }
+    if (expiresAt && expiresAt < joined) {
+      error.textContent = "The expiry date can't be before the join date.";
+      return;
+    }
+
+    const fields = {
+      name: name,
+      email: email,
+      phone: $("m-phone").value.trim(),
+      plan: $("m-plan").value.trim(),
+      joined: joined,
+      expiresAt: expiresAt,
+      notes: $("m-notes").value.trim(),
+    };
 
     error.textContent = "";
     submit.disabled = true;
     try {
-      const data = await api("/api/members", {
-        method: "POST",
-        body: {
-          name: name,
-          email: email,
-          phone: $("m-phone").value.trim(),
-          plan: $("m-plan").value.trim(),
-          status: $("m-status").value,
-          joined: $("m-joined").value || todayISO(),
-          notes: $("m-notes").value.trim(),
-          checkIn: $("m-checkin").checked && $("m-status").value === "active",
-        },
-      });
-      members.unshift(data.member);
-      if (data.checkin) checkins.unshift(data.checkin);
+      if (editingId) {
+        const data = await api("/api/members/" + encodeURIComponent(editingId), { method: "PATCH", body: fields });
+        members = members.map((x) => (x.id === editingId ? data.member : x));
+        // someone inside the gym keeps showing under their new name
+        checkins = checkins.map((c) => (c.member === editingId && !c.checkOutAt ? Object.assign({}, c, { memberName: data.member.name }) : c));
+      } else {
+        const data = await api("/api/members", {
+          method: "POST",
+          body: Object.assign({}, fields, {
+            status: $("m-status").value,
+            checkIn: $("m-checkin").checked && $("m-status").value === "active" && !(expiresAt && expiresAt < todayISO()),
+          }),
+        });
+        members.unshift(data.member);
+        if (data.checkin) checkins.unshift(data.checkin);
+      }
       renderMembers();
       closeDialog($("add-dialog"));
     } catch (err) {
@@ -566,13 +666,19 @@ function initData() {
     $("md-avatar").textContent = initials(m.name);
     $("md-name").textContent = m.name;
     const badge = $("md-status");
-    badge.textContent = STATUS[m.status] || m.status;
-    badge.className = "pill status-" + m.status;
+    const state = memberState(m);
+    badge.textContent = STATUS[state];
+    badge.className = "pill status-" + state;
     $("md-email").textContent = m.email || "—";
     $("md-phone").textContent = m.phone || "—";
     $("md-plan").textContent = m.plan || "—";
     $("md-joined").textContent = fmtDate(m.joined);
+    $("md-expires").textContent = m.expiresAt ? fmtDate(m.expiresAt) + " (" + expiryNote(m.expiresAt) + ")" : "No expiry date";
     $("md-notes").textContent = m.notes || "—";
+    $("md-edit").onclick = () => {
+      closeDialog($("details-dialog"));
+      openMemberForm(m);
+    };
     $("md-delete").onclick = () => {
       closeDialog($("details-dialog"));
       askDelete(m);
@@ -666,7 +772,7 @@ function initData() {
     while (sel.options.length > 1) sel.remove(1);
     const inside = new Set(open.map((c) => c.member));
     members
-      .filter((m) => m.status === "active" && !inside.has(m.id))
+      .filter((m) => memberState(m) === "active" && !inside.has(m.id))
       .sort((a, b) => a.name.localeCompare(b.name))
       .forEach((m) => {
         const opt = document.createElement("option");

@@ -153,6 +153,26 @@ const text = (value, max) =>
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
+// A real calendar date written as YYYY-MM-DD (rejects things like 2026-02-31).
+const isDateStr = (value) => {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
+};
+
+// "Today" as YYYY-MM-DD in the gym's timezone (default Manila; override with GYM_TIMEZONE on Render).
+const todayInGym = () => {
+  try {
+    return new Date().toLocaleDateString("en-CA", { timeZone: process.env.GYM_TIMEZONE || "Asia/Manila" });
+  } catch (error) {
+    return new Date().toISOString().slice(0, 10);
+  }
+};
+
+// A membership is expired once its expiry date has passed (the expiry day itself still counts).
+const isExpired = (member) => Boolean(member.expiresAt) && member.expiresAt < todayInGym();
+
 const memberSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 120 },
@@ -161,6 +181,7 @@ const memberSchema = new mongoose.Schema(
     plan: { type: String, trim: true, maxlength: 120, default: "" },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
     joined: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
+    expiresAt: { type: String, match: /^\d{4}-\d{2}-\d{2}$/, default: "" },
     notes: { type: String, trim: true, maxlength: 1000, default: "" },
     createdBy: { type: String, default: "" },
   },
@@ -234,10 +255,15 @@ app.post("/api/members", requireAuth, async (req, res) => {
         .json({ message: "A member with this email address already exists." });
     }
 
-    const joined =
-      typeof body.joined === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.joined)
-        ? body.joined
-        : new Date().toISOString().slice(0, 10);
+    const joined = isDateStr(body.joined) ? body.joined : todayInGym();
+    const expiresAt = body.expiresAt === undefined || body.expiresAt === "" ? "" : body.expiresAt;
+
+    if (expiresAt && !isDateStr(expiresAt)) {
+      return res.status(400).json({ message: "Enter a valid expiry date." });
+    }
+    if (expiresAt && expiresAt < joined) {
+      return res.status(400).json({ message: "The expiry date can't be before the join date." });
+    }
 
     const member = await Member.create({
       name,
@@ -246,13 +272,14 @@ app.post("/api/members", requireAuth, async (req, res) => {
       plan: text(body.plan, 120),
       status: body.status === "inactive" ? "inactive" : "active",
       joined,
+      expiresAt,
       notes: text(body.notes, 1000),
       createdBy: req.user.email,
     });
 
-    // Optionally record a check-in at the same time (active members only).
+    // Optionally record a check-in at the same time (active, non-expired members only).
     let checkin = null;
-    if (body.checkIn === true && member.status === "active") {
+    if (body.checkIn === true && member.status === "active" && !isExpired(member)) {
       checkin = await Checkin.create({
         member: member._id,
         memberName: member.name,
@@ -262,6 +289,84 @@ app.post("/api/members", requireAuth, async (req, res) => {
     }
 
     res.status(201).json({ member, checkin });
+  } catch (error) {
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
+// Edit a member's details (name, email, phone, plan, join date, expiry date, notes).
+// Only the fields that are sent are changed. Status has its own route, below.
+app.patch("/api/members/:id", requireAuth, async (req, res) => {
+  try {
+    const body = req.body || {};
+
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({ message: "Invalid member id." });
+    }
+
+    const member = await Member.findById(req.params.id);
+    if (!member) {
+      return res.status(404).json({ message: "Member not found." });
+    }
+
+    if (body.name !== undefined) {
+      const name = text(body.name, 120);
+      if (!name) {
+        return res.status(400).json({ message: "Full name is required." });
+      }
+      member.name = name;
+    }
+
+    if (body.email !== undefined) {
+      const email = text(body.email, 160).toLowerCase();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ message: "Enter a valid email address." });
+      }
+      if (email) {
+        const other = await Member.findOne({ email });
+        if (other && String(other._id) !== String(member._id)) {
+          return res
+            .status(409)
+            .json({ message: "A member with this email address already exists." });
+        }
+      }
+      member.email = email;
+    }
+
+    if (body.phone !== undefined) member.phone = text(body.phone, 40);
+    if (body.plan !== undefined) member.plan = text(body.plan, 120);
+    if (body.notes !== undefined) member.notes = text(body.notes, 1000);
+
+    if (body.joined !== undefined) {
+      if (!isDateStr(body.joined)) {
+        return res.status(400).json({ message: "Enter a valid join date." });
+      }
+      member.joined = body.joined;
+    }
+
+    if (body.expiresAt !== undefined) {
+      if (body.expiresAt !== "" && !isDateStr(body.expiresAt)) {
+        return res.status(400).json({ message: "Enter a valid expiry date." });
+      }
+      member.expiresAt = body.expiresAt;
+    }
+
+    if (member.expiresAt && member.joined && member.expiresAt < member.joined) {
+      return res.status(400).json({ message: "The expiry date can't be before the join date." });
+    }
+
+    const renamed = body.name !== undefined;
+    await member.save();
+
+    // Keep the "Members in gym" list in step with a rename (finished visits keep the old name).
+    if (renamed) {
+      await Checkin.updateMany(
+        { member: member._id, checkOutAt: null },
+        { memberName: member.name },
+      );
+    }
+
+    res.json({ member });
   } catch (error) {
     res.status(500).json({ message: "Server error." });
   }
@@ -452,6 +557,11 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
     }
     if (member.status !== "active") {
       return res.status(400).json({ message: "Inactive members can't check in." });
+    }
+    if (isExpired(member)) {
+      return res.status(400).json({
+        message: `${member.name}'s membership expired on ${member.expiresAt}. Renew it before checking in.`,
+      });
     }
     if (await Checkin.findOne({ member: member._id, checkOutAt: null })) {
       return res.status(409).json({ message: `${member.name} is already in the gym.` });
