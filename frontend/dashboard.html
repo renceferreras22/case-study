@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body class="dashboard">
-    <!-- icon sprite (Lucide set, as used in the Figma design) -->
+    <!-- icon sprite (Lucide set, as used in the Figma design)[cite: 2] -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <symbol id="i-dashboard" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></symbol>
       <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
@@ -24,7 +24,7 @@
       <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
       <symbol id="i-building" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></symbol>
       <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
-      <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></symbol>
+      <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1-2-1 2 1-2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></symbol>
       <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
       <symbol id="i-banknote" viewBox="0 0 24 24"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></symbol>
       <symbol id="i-phone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></symbol>
@@ -178,7 +178,7 @@
             </div>
           </div>
 
-          <p class="note"><svg class="i" width="15" height="15"><use href="#i-info" /></svg>· GCash ccounts and payments are simulated for project use only.</p>
+          <p class="note"><svg class="i" width="15" height="15"><use href="#i-info" /></svg>· GCash accounts and payments are simulated for project use only.</p>
         </section>
 
         <!-- ===================== MEMBERS ===================== -->
@@ -270,8 +270,8 @@
               <div class="card-head"><div><h2>Record cash payment</h2><p>Enter the payment details.</p></div></div>
               <div class="row">
                 <div class="form-field">
-                  <label for="cash-member">Member *</label>
-                  <div class="control"><select id="cash-member" required><option value="" selected disabled hidden>Select a member</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
+                  <label for="cash-member">Member <small>(optional for walk-ins)</small></label>
+                  <div class="control"><select id="cash-member"><option value="" selected>Select a member or leave blank for walk-in</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
                 </div>
                 <div class="form-field">
                   <label for="cash-purpose">Payment purpose *</label>
@@ -320,8 +320,8 @@
               <div class="card-head"><div><h2>GCash payment</h2><p>Enter the payment details.</p></div></div>
               <div class="row">
                 <div class="form-field">
-                  <label for="g-member">Member</label>
-                  <div class="control"><select id="g-member"><option value="" selected disabled hidden>Select a member</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
+                  <label for="g-member">Member <small>(optional for walk-ins)</small></label>
+                  <div class="control"><select id="g-member"><option value="" selected>Select a member or leave blank for walk-in</option></select><svg class="i" width="15" height="15"><use href="#i-chev-d" /></svg></div>
                 </div>
                 <div class="form-field">
                   <label for="g-purpose">Payment purpose</label>

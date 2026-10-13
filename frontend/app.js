@@ -150,12 +150,16 @@ function initDashboard() {
     rec.addEventListener("input", update);
   })();
 
-  /* Enable the submit buttons once required fields are filled */
+  /* Enable the submit buttons once required fields are filled (member is optional for walk-ins) */
   function bindSubmit(btnId, fieldIds) {
     const btn = document.getElementById(btnId);
     const fields = fieldIds.map((id) => document.getElementById(id));
-    const check = () => { btn.disabled = !fields.every((f) => f.value.trim() !== ""); };
-    fields.forEach((f) => { f.addEventListener("input", check); f.addEventListener("change", check); });
+    const check = () => { 
+      const reqFields = fields.filter(f => f && f.id !== "cash-member" && f.id !== "g-member");
+      const allFilled = reqFields.every((f) => f.value.trim() !== "");
+      btn.disabled = !allFilled; 
+    };
+    fields.forEach((f) => { if (f) { f.addEventListener("input", check); f.addEventListener("change", check); } });
     check();
   }
   bindSubmit("cash-submit", ["cash-member", "cash-purpose", "cash-due", "cash-received", "cash-date"]);
@@ -372,7 +376,8 @@ function initData() {
   }
 
   function poke(id) {
-    $(id).dispatchEvent(new Event("input", { bubbles: true }));
+    const elem = $(id);
+    if (elem) elem.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   /* ----- dialogs ----- */
@@ -484,6 +489,7 @@ function initData() {
   function fillMemberSelects() {
     ["cash-member", "g-member"].forEach((id) => {
       const sel = $(id);
+      if (!sel) return;
       const current = sel.value;
       while (sel.options.length > 1) sel.remove(1);
       members.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach((m) => {
@@ -543,7 +549,6 @@ function initData() {
   }
 
   /* ----- add member ----- */
-  /* ----- membership plan: a dropdown you can also type in ----- */
   const planInput = $("m-plan");
   const planList = $("plan-list");
   const planItems = Array.from(planList.querySelectorAll("li"));
@@ -576,11 +581,11 @@ function initData() {
     closePlanList();
     planInput.focus();
     applyPlanDefaults(value);
-    if (value === "Others") planInput.select(); // so you can type your own name straight away
+    if (value === "Others") planInput.select();
   }
 
   planItems.forEach((li, i) => {
-    li.addEventListener("mousedown", (e) => e.preventDefault()); // keep focus in the field
+    li.addEventListener("mousedown", (e) => e.preventDefault());
     li.addEventListener("click", () => choosePlan(i));
     li.addEventListener("mousemove", () => { planActive = i; markPlanItems(); });
   });
@@ -590,7 +595,7 @@ function initData() {
   });
   planInput.addEventListener("focus", openPlanList);
   planInput.addEventListener("click", openPlanList);
-  planInput.addEventListener("input", closePlanList); // typing your own plan: get the list out of the way
+  planInput.addEventListener("input", closePlanList);
   planInput.addEventListener("blur", closePlanList);
   planInput.addEventListener("keydown", (e) => {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -602,16 +607,12 @@ function initData() {
       e.preventDefault();
       choosePlan(planActive);
     } else if (e.key === "Escape" && !planList.hidden) {
-      e.preventDefault(); // close just the list, not the whole dialog
+      e.preventDefault();
       e.stopPropagation();
       closePlanList();
     }
   });
 
-  /* ----- choosing a plan fills in the expiry date ----- */
-  // Day Pass = today, Monthly = +1 month, Yearly = +1 year (counted from today), Others = no date.
-  // A date you set yourself is never overwritten: only an empty date, a date already in the past,
-  // or a date that an earlier plan choice filled in can be replaced.
   let expiryAuto = false;
 
   function applyPlanDefaults(name) {
@@ -639,16 +640,14 @@ function initData() {
         hint.textContent = "Expiry date kept at " + fmtDate(expiry.value) + ". Use +1 month or +1 year to extend it.";
       }
     } else {
-      hint.textContent = ""; // a custom plan name: leave the date alone
+      hint.textContent = "";
     }
     syncCheckinBox();
   }
 
-  planInput.addEventListener("input", () => applyPlanDefaults(planInput.value)); // typed "Monthly" etc.
-  // any hand edit of the date means "this one is mine": plan changes won't overwrite it
+  planInput.addEventListener("input", () => applyPlanDefaults(planInput.value));
   $("m-expires").addEventListener("input", () => { expiryAuto = false; });
 
-  // One form, two modes: add a member, or edit an existing one.
   let editingId = null;
 
   function openMemberForm(m) {
@@ -660,7 +659,7 @@ function initData() {
     $("add-title").textContent = m ? "Edit member" : "Add member";
     $("add-desc").textContent = m ? "Update this member's details, plan or expiry date." : "Enter the member's details. Fields marked * are required.";
     $("member-submit-label").textContent = m ? "Save changes" : "Save member";
-    $("m-status-field").hidden = Boolean(m); // status has its own switch in the directory
+    $("m-status-field").hidden = Boolean(m);
     $("m-checkin-row").hidden = Boolean(m);
     if (m) {
       $("m-name").value = m.name;
@@ -681,7 +680,6 @@ function initData() {
 
   $("add-member-btn").addEventListener("click", () => openMemberForm(null));
 
-  // quick-set buttons for the expiry date
   document.querySelectorAll("[data-extend]").forEach((b) => {
     b.addEventListener("click", () => {
       const kind = b.dataset.extend;
@@ -705,7 +703,7 @@ function initData() {
     const wasDisabled = box.disabled;
     box.disabled = inactive;
     if (inactive) box.checked = false;
-    else if (wasDisabled) box.checked = true; // back to active: restore the default
+    else if (wasDisabled) box.checked = true;
   }
   $("m-status").addEventListener("change", syncCheckinBox);
   $("m-expires").addEventListener("input", syncCheckinBox);
@@ -749,7 +747,6 @@ function initData() {
       if (editingId) {
         const data = await api("/api/members/" + encodeURIComponent(editingId), { method: "PATCH", body: fields });
         members = members.map((x) => (x.id === editingId ? data.member : x));
-        // someone inside the gym keeps showing under their new name
         checkins = checkins.map((c) => (c.member === editingId && !c.checkOutAt ? Object.assign({}, c, { memberName: data.member.name }) : c));
       } else {
         const data = await api("/api/members", {
@@ -771,7 +768,6 @@ function initData() {
     }
   });
 
-  /* ----- member details ----- */
   function showDetails(m) {
     $("md-avatar").textContent = initials(m.name);
     $("md-name").textContent = m.name;
@@ -796,7 +792,6 @@ function initData() {
     openDialog($("details-dialog"));
   }
 
-  /* ----- delete member ----- */
   function askDelete(m) {
     pendingDeleteId = m.id;
     $("confirm-name").textContent = m.name;
@@ -827,7 +822,7 @@ function initData() {
   $("member-status-filter").addEventListener("change", renderMembers);
 
   /* =====================================================================
-     CHECK-INS (Dashboard: "Recent check-ins" and "Members in gym")
+     CHECK-INS
      ===================================================================== */
   function renderCheckins() {
     const now = new Date();
@@ -835,7 +830,6 @@ function initData() {
     const today = checkins.filter((c) => sameDay(c.checkInAt, now));
     const ready = membersState === "ready";
 
-    // Recent check-ins: today's visits, newest first
     const body = $("checkins-body");
     body.replaceChildren();
     today.forEach((c) => {
@@ -851,16 +845,13 @@ function initData() {
     setText('[data-field="checkins-count"]', today.length ? plural(today.length, "check-in", "check-ins") : "");
     setText('[data-field="checkins-context"]', today.length ? "Newest first" : "");
 
-    // cards
     setText('[data-field="members-in-gym"]', ready ? String(open.length) : "");
     setText('[data-field="todays-checkins"]', ready ? String(today.length) : "");
     setText('[data-field="present-count"]', open.length ? open.length + " present" : "");
-    // Analytics > Check-ins card
     setText('[data-field="total-checkins"]', ready ? String(checkins.length) : "");
     setText('[data-field="current-in-gym"]', ready ? String(open.length) : "");
     $("hint-checkins").hidden = !ready || checkins.length > 0;
 
-    // Members in gym: who is inside right now
     const list = $("in-gym-list");
     list.replaceChildren();
     open.forEach((c) => {
@@ -880,44 +871,51 @@ function initData() {
     });
     document.querySelector(".records-empty").hidden = open.length > 0;
 
-    // picker: active members who are not already inside
     const sel = $("checkin-member");
-    const current = sel.value;
-    while (sel.options.length > 1) sel.remove(1);
-    const inside = new Set(open.map((c) => c.member));
-    members
-      .filter((m) => memberState(m) === "active" && !inside.has(m.id))
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .forEach((m) => {
-        const opt = document.createElement("option");
-        opt.value = m.id;
-        opt.textContent = m.name;
-        sel.appendChild(opt);
-      });
-    sel.value = Array.from(sel.options).some((o) => o.value === current) ? current : "";
-    $("checkin-btn").disabled = !sel.value;
+    if (sel) {
+      const current = sel.value;
+      while (sel.options.length > 1) sel.remove(1);
+      const inside = new Set(open.map((c) => c.member));
+      members
+        .filter((m) => memberState(m) === "active" && !inside.has(m.id))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .forEach((m) => {
+          const opt = document.createElement("option");
+          opt.value = m.id;
+          opt.textContent = m.name;
+          sel.appendChild(opt);
+        });
+      sel.value = Array.from(sel.options).some((o) => o.value === current) ? current : "";
+      $("checkin-btn").disabled = !sel.value;
+    }
   }
 
-  $("checkin-member").addEventListener("change", () => {
-    $("checkin-btn").disabled = !$("checkin-member").value;
-  });
+  const checkinMemberSel = $("checkin-member");
+  if (checkinMemberSel) {
+    checkinMemberSel.addEventListener("change", () => {
+      $("checkin-btn").disabled = !checkinMemberSel.value;
+    });
+  }
 
-  $("checkin-btn").addEventListener("click", async () => {
-    const btn = $("checkin-btn");
-    const error = $("checkin-error");
-    const memberId = $("checkin-member").value;
-    if (!memberId) return;
-    error.textContent = "";
-    btn.disabled = true;
-    try {
-      const data = await api("/api/checkins", { method: "POST", body: { memberId: memberId } });
-      checkins.unshift(data.checkin);
-      renderCheckins();
-    } catch (err) {
-      error.textContent = err.message;
-      btn.disabled = !$("checkin-member").value;
-    }
-  });
+  const checkinBtn = $("checkin-btn");
+  if (checkinBtn) {
+    checkinBtn.addEventListener("click", async () => {
+      const btn = $("checkin-btn");
+      const error = $("checkin-error");
+      const memberId = $("checkin-member").value;
+      if (!memberId) return;
+      error.textContent = "";
+      btn.disabled = true;
+      try {
+        const data = await api("/api/checkins", { method: "POST", body: { memberId: memberId } });
+        checkins.unshift(data.checkin);
+        renderCheckins();
+      } catch (err) {
+        error.textContent = err.message;
+        btn.disabled = !$("checkin-member").value;
+      }
+    });
+  }
 
   async function checkOut(id, btn) {
     const error = $("checkin-error");
@@ -940,7 +938,7 @@ function initData() {
 
   function paymentRow(p, withStatus) {
     const tr = document.createElement("tr");
-    tr.appendChild(el("td", "", p.memberName));
+    tr.appendChild(el("td", "", p.memberName || "Walk-in Guest"));
     tr.appendChild(el("td", "", p.purpose));
     tr.appendChild(el("td", "", METHOD[p.method] || p.method));
     tr.appendChild(el("td", "", num(p.amount)));
@@ -963,6 +961,7 @@ function initData() {
 
   function renderTrend(list) {
     const box = $("payments-chart");
+    if (!box) return;
     const old = box.querySelector("svg.trend");
     if (old) old.remove();
     box.querySelector(".empty").hidden = list.length > 0;
@@ -1012,14 +1011,14 @@ function initData() {
     const todayCash = todayPaid.filter((p) => p.method === "cash");
     const todayGcash = todayPaid.filter((p) => p.method === "gcash");
 
-    // Payment history (Payment Methods section)
     const history = $("payment-history-body");
-    history.replaceChildren();
-    payments.forEach((p) => history.appendChild(paymentRow(p, true)));
+    if (history) {
+      history.replaceChildren();
+      payments.forEach((p) => history.appendChild(paymentRow(p, true)));
+    }
     setText('[data-field="history-count"]', payments.length ? plural(payments.length, "record", "records") : "");
     setText('[data-field="history-context"]', payments.length ? "Newest first" : "");
 
-    // Dashboard cards
     setText('[data-field="todays-payments"]', money(sum(todayPaid)));
     setText('[data-field="today-total"]', money(sum(todayPaid)));
     setText('[data-field="today-cash-count"]', plural(todayCash.length, "payment", "payments"));
@@ -1027,7 +1026,6 @@ function initData() {
     setText('[data-field="today-gcash-count"]', plural(todayGcash.length, "payment", "payments"));
     setText('[data-field="today-gcash-total"]', money(sum(todayGcash)));
 
-    // Analytics cards
     setText('[data-field="total-recorded"]', money(total));
     setText('[data-field="cash-total"]', money(sum(cash)));
     setText('[data-field="gcash-total"]', money(sum(gcash)));
@@ -1036,17 +1034,21 @@ function initData() {
     setText('[data-field="breakdown-gcash-total"]', money(sum(gcash)));
     setText('[data-field="breakdown-cash-count"]', plural(cash.length, "payment", "payments"));
     setText('[data-field="breakdown-gcash-count"]', plural(gcash.length, "payment", "payments"));
-    document.querySelector('[data-field="breakdown-cash-bar"]').style.width = total ? (sum(cash) / total) * 100 + "%" : "0";
-    document.querySelector('[data-field="breakdown-gcash-bar"]').style.width = total ? (sum(gcash) / total) * 100 + "%" : "0";
+    
+    const cashBar = document.querySelector('[data-field="breakdown-cash-bar"]');
+    const gcashBar = document.querySelector('[data-field="breakdown-gcash-bar"]');
+    if (cashBar) cashBar.style.width = total ? (sum(cash) / total) * 100 + "%" : "0";
+    if (gcashBar) gcashBar.style.width = total ? (sum(gcash) / total) * 100 + "%" : "0";
     renderTrend(paid);
 
-    // All payment records (Analytics section)
     const q = $("filter-member").value.trim().toLowerCase();
     const method = $("filter-method").value;
-    const rows = payments.filter((p) => (!method || p.method === method) && (!q || p.memberName.toLowerCase().includes(q)));
+    const rows = payments.filter((p) => (!method || p.method === method) && (!q || (p.memberName || "").toLowerCase().includes(q)));
     const all = $("all-records-body");
-    all.replaceChildren();
-    rows.forEach((p) => all.appendChild(paymentRow(p, false)));
+    if (all) {
+      all.replaceChildren();
+      rows.forEach((p) => all.appendChild(paymentRow(p, false)));
+    }
     $("records-empty-title").textContent = payments.length ? "No matching payments" : "No payments recorded";
     $("records-empty-text").textContent = payments.length
       ? "Try a different member name or method."
@@ -1059,7 +1061,6 @@ function initData() {
   $("filter-member").addEventListener("input", renderPayments);
   $("filter-method").addEventListener("change", renderPayments);
 
-  /* ----- cash payment ----- */
   function resetCashForm() {
     ["cash-purpose", "cash-due", "cash-received", "cash-notes"].forEach((id) => { $(id).value = ""; });
     $("cash-member").value = "";
@@ -1092,7 +1093,7 @@ function initData() {
         method: "POST",
         body: {
           method: "cash",
-          memberId: $("cash-member").value,
+          memberId: $("cash-member").value || null,
           purpose: $("cash-purpose").value.trim(),
           amount: amount,
           cashReceived: received,
@@ -1106,11 +1107,10 @@ function initData() {
       ok.textContent = "Payment recorded · " + data.payment.reference;
     } catch (err) {
       error.textContent = err.message;
-      poke("cash-due"); // re-evaluate the button state
+      poke("cash-due");
     }
   });
 
-  /* ----- GCash payment (demo) ----- */
   function demoQr(seed) {
     const N = 25;
     const ns = "http://www.w3.org/2000/svg";
@@ -1164,7 +1164,7 @@ function initData() {
     box.replaceChildren();
     box.appendChild(demoQr(p.reference));
     box.appendChild(el("h3", "", "Demo QR generated"));
-    box.appendChild(el("p", "", p.memberName + " · " + money(p.amount)));
+    box.appendChild(el("p", "", (p.memberName || "Walk-in Guest") + " · " + money(p.amount)));
     box.appendChild(el("p", "hint", "Reference " + p.reference + " · Pending"));
     const actions = el("div", "qr-actions");
     actions.appendChild(button("Mark as paid", "btn btn-primary btn-sm", () => updateStatus(p.id, "paid")));
@@ -1179,7 +1179,7 @@ function initData() {
     ic.appendChild(icon("i-check", 23));
     box.appendChild(ic);
     box.appendChild(el("h3", "", "Payment recorded"));
-    box.appendChild(el("p", "", p.memberName + " · " + money(p.amount)));
+    box.appendChild(el("p", "", (p.memberName || "Walk-in Guest") + " · " + money(p.amount)));
     box.appendChild(el("p", "hint", "Reference " + p.reference));
   }
 
@@ -1208,7 +1208,7 @@ function initData() {
         method: "POST",
         body: {
           method: "gcash",
-          memberId: $("g-member").value,
+          memberId: $("g-member").value || null,
           purpose: $("g-purpose").value.trim(),
           amount: amount,
           paidAt: new Date($("g-date").value).toISOString(),
@@ -1222,6 +1222,8 @@ function initData() {
     } catch (err) {
       error.textContent = err.message;
       poke("g-amount");
+    } finally {
+      btn.disabled = false;
     }
   });
 
@@ -1240,9 +1242,6 @@ function initData() {
     }
   }
 
-  /* =====================================================================
-     START: set defaults, then load everything from the database
-     ===================================================================== */
   $("cash-date").value = nowLocalInput();
   $("g-date").value = nowLocalInput();
   poke("cash-date");
@@ -1251,7 +1250,6 @@ function initData() {
   renderMembers();
   renderPayments();
 
-  // check-ins load separately, so a problem there never hides members or payments
   const checkinsRequest = api("/api/checkins")
     .then((r) => r.checkins || [])
     .catch((err) => {
@@ -1282,7 +1280,7 @@ function initData() {
 
 if (document.body && document.body.classList.contains("dashboard")) {
   if (!localStorage.getItem("token")) {
-    window.location.replace("index.html"); // not signed in
+    window.location.replace("index.html");
   } else {
     showStaffName();
     initDashboard();
