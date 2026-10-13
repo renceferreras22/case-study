@@ -835,7 +835,8 @@ body.dashboard .metric {
   padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  justify-content: space-between; /* Ensures inner content distributes evenly */
+  height: 100%;                   /* Forces all cards in the grid to match the tallest card's height */
   min-width: 0;
 }
 
