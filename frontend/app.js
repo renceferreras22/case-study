@@ -1150,7 +1150,7 @@ function initData() {
           r.setAttribute("y", y);
           r.setAttribute("width", 1);
           r.setAttribute("height", 1);
-          r.setAttribute("fill", "#112218");
+          r.setAttribute("fill", "#071925");
           svg.appendChild(r);
         }
       }

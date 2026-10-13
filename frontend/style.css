@@ -1,13 +1,13 @@
 /* Everything is sized in rem; the root size scales with the window
    (by width and height) so the whole page always fits the screen. */
 :root {
-  --green-900: #115840;
-  --green-700: #1d6b4b;
-  --green-600: #207a56;
-  --ink: #12261c;
-  --muted: #6b7a72;
-  --bg: #f5f7f5;
-  --line: #e3e8e5;
+  --green-900: #071925;
+  --green-700: #FE5516;
+  --green-600: #FE5516;
+  --ink: #071925;
+  --muted: #495F6E;
+  --bg: #F5F5DC;
+  --line: #E8D9BB;
 }
 
 * {
@@ -49,8 +49,8 @@ body {
   padding: 7.5vh 7rem 1.5rem;
   color: #fff;
   background:
-    radial-gradient(circle at 70% 25%, rgba(60, 160, 115, 0.55) 0%, transparent 55%),
-    linear-gradient(160deg, #1f7452 0%, #17664a 50%, #115840 100%);
+    radial-gradient(circle at 70% 25%, rgba(26, 92, 135, 0.5) 0%, transparent 55%),
+    linear-gradient(160deg, #0E2B3E 0%, #0A202E 50%, #071925 100%);
 }
 
 .brand-panel::before {
@@ -94,7 +94,7 @@ body {
   width: 3.55rem;
   height: 3.55rem;
   border-radius: 0.9rem;
-  background: #dcf5e4;
+  background: #F5F5DC;
 }
 
 .logo-mark svg {
@@ -118,7 +118,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #b9e8cc;
+  color: #FE5516;
 }
 
 .brand-copy h1 {
@@ -135,9 +135,15 @@ body {
   margin: 0;
   font-size: 1.5rem;
   line-height: 1.75;
-  color: #e3f4ea;
+  color: #F5F5DC;
 }
 
+.brand-foot {
+  margin: 0;
+  padding-top: 2rem;
+  font-size: 1.25rem;
+  color: #E8D9BB;
+}
 
 /* ---------- right form panel ---------- */
 
@@ -160,7 +166,7 @@ body {
   font-size: 2.9rem;
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: #112218;
+  color: #071925;
 }
 
 .subtitle {
@@ -175,7 +181,7 @@ body {
   gap: 0.25rem;
   padding: 0.4rem;
   margin-bottom: 2.1rem;
-  background: #eceff0;
+  background: #E8D9BB;
   border-radius: 1rem;
 }
 
@@ -187,14 +193,14 @@ body {
   font-family: inherit;
   font-size: 1.35rem;
   font-weight: 600;
-  color: #3f5a4c;
+  color: #364B59;
   cursor: pointer;
   transition: background 0.15s, box-shadow 0.15s;
 }
 
 .tab.active {
   background: #fff;
-  color: var(--green-700);
+  color: var(--ink);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -211,7 +217,7 @@ label {
   margin-bottom: 0.8rem;
   font-size: 1.3rem;
   font-weight: 600;
-  color: #112218;
+  color: #071925;
 }
 
 input {
@@ -229,12 +235,12 @@ input {
 }
 
 input::placeholder {
-  color: #a3aea8;
+  color: #84919A;
 }
 
 input:focus {
   border-color: var(--green-600);
-  box-shadow: 0 0 0 3px rgba(32, 122, 86, 0.18);
+  box-shadow: 0 0 0 3px rgba(254, 85, 22, 0.18);
 }
 
 #message {
@@ -255,18 +261,18 @@ input:focus {
   font-family: inherit;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--ink);
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .submit:hover {
-  background: #175b3f;
+  background: #F44301;
 }
 
 .tab:focus-visible,
 .submit:focus-visible {
-  outline: 3px solid rgba(32, 122, 86, 0.45);
+  outline: 3px solid rgba(254, 85, 22, 0.45);
   outline-offset: 2px;
 }
 
@@ -432,24 +438,24 @@ input:focus {
    ===================================================================== */
 
 body.dashboard {
-  /* palette copied from the sign-in page (index.html / style.css) */
-  --bg: #f5f7f5;
-  --ink: #12261c;
-  --head: #112218;
-  --muted: #6b7a72;
-  --faint: #a3aea8;
-  --line: #e3e8e5;
-  --green: #1d6b4b;
-  --green-hover: #175b3f;
-  --focus: #207a56;
-  --mint: #e3f4ea;
-  --logo-tile: #dcf5e4;
-  --accent: #f26a21;
+  /* palette: navy #071925, orange #FE5516, cream #F5F5DC, tan #E8D9BB (names like --green are kept; --green now holds the orange) */
+  --bg: #F5F5DC;
+  --ink: #071925;
+  --head: #071925;
+  --muted: #495F6E;
+  --faint: #84919A;
+  --line: #E8D9BB;
+  --green: #FE5516;
+  --green-hover: #F44301;
+  --focus: #FE5516;
+  --mint: #F2E9D8;
+  --logo-tile: #F5F5DC;
+  --accent: #FE5516;
   --field: #fff;
-  --track: #eceff0;
-  --tab-ink: #3f5a4c;
-  --side-text: #d3ecdc;
-  --side-label: #b9e8cc;
+  --track: #E8D9BB;
+  --tab-ink: #364B59;
+  --side-text: #E8D9BB;
+  --side-label: #FE5516;
   --side-hover: rgba(255, 255, 255, 0.08);
   --side-active: rgba(255, 255, 255, 0.14);
   --side-line: rgba(255, 255, 255, 0.16);
@@ -507,7 +513,7 @@ body.dashboard .sidebar {
   flex-direction: column;
   gap: 36px;
   padding: 32px 20px 24px;
-  background: linear-gradient(160deg, #1f7452 0%, #17664a 50%, #115840 100%);
+  background: linear-gradient(160deg, #0E2B3E 0%, #0A202E 50%, #071925 100%);
   overflow-y: auto;
 }
 
@@ -765,7 +771,7 @@ body.dashboard .btn {
 
 body.dashboard .btn-primary {
   background: var(--green);
-  color: #fff;
+  color: var(--ink);
 }
 
 body.dashboard .btn-primary:hover {
@@ -775,7 +781,7 @@ body.dashboard .btn-primary:hover {
 body.dashboard .btn-outline {
   background: #fff;
   border-color: var(--line);
-  color: var(--green);
+  color: var(--ink);
 }
 
 body.dashboard .btn-outline:hover {
@@ -785,15 +791,15 @@ body.dashboard .btn-outline:hover {
 body.dashboard .btn:disabled {
   background: var(--track);
   border-color: transparent;
-  color: #829189;
+  color: #788791;
   cursor: not-allowed;
 }
 
 body.dashboard .pill {
   padding: 5px 10px;
   border-radius: 100px;
-  background: var(--mint);
-  color: var(--green);
+  background: rgba(7, 25, 37, 0.08);
+  color: var(--ink);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
@@ -912,7 +918,7 @@ body.dashboard .empty-icon {
   height: 44px;
   border-radius: 12px;
   background: var(--mint);
-  color: var(--green);
+  color: #C13501;
 }
 
 body.dashboard .empty h3 {
@@ -974,7 +980,7 @@ body.dashboard .control {
 
 body.dashboard .control:focus-within {
   border-color: var(--focus);
-  box-shadow: 0 0 0 3px rgba(32, 122, 86, 0.18);
+  box-shadow: 0 0 0 3px rgba(254, 85, 22, 0.18);
 }
 
 body.dashboard .control .prefix {
@@ -1026,7 +1032,7 @@ body.dashboard .guidance {
   padding: 16px;
   border-radius: 8px;
   background: var(--mint);
-  color: var(--green);
+  color: var(--ink);
 }
 
 body.dashboard .guidance b {
@@ -1068,7 +1074,7 @@ body.dashboard .method-tab {
 
 body.dashboard .method-tab.active {
   background: #fff;
-  color: var(--green);
+  color: var(--ink);
 }
 
 body.dashboard .method-tab:not(.active) .tick {
@@ -1528,7 +1534,7 @@ body.dashboard .avatar {
   height: 34px;
   border-radius: 50%;
   background: var(--mint);
-  color: var(--green);
+  color: #C13501;
   font-size: 12px;
   font-weight: 600;
 }
@@ -1540,7 +1546,7 @@ body.dashboard .avatar.big {
 }
 
 body.dashboard .pill.status-inactive {
-  background: #eceff0;
+  background: #E8D9BB;
   color: var(--muted);
 }
 
@@ -1603,7 +1609,7 @@ body.dashboard .btn:focus-visible,
 body.dashboard .icon-btn:focus-visible,
 body.dashboard .method-tab:focus-visible,
 body.dashboard .nav a:focus-visible {
-  outline: 3px solid rgba(32, 122, 86, 0.45);
+  outline: 3px solid rgba(254, 85, 22, 0.45);
   outline-offset: 2px;
 }
 
@@ -1616,7 +1622,7 @@ body.dashboard dialog.modal {
   border-radius: 14px;
   background: #fff;
   color: var(--ink);
-  box-shadow: 0 24px 60px rgba(17, 34, 24, 0.28);
+  box-shadow: 0 24px 60px rgba(7, 25, 37, 0.28);
   overflow: auto;
 }
 
@@ -1625,7 +1631,7 @@ body.dashboard dialog.modal.small {
 }
 
 body.dashboard dialog.modal::backdrop {
-  background: rgba(17, 34, 24, 0.5);
+  background: rgba(7, 25, 37, 0.5);
 }
 
 body.dashboard .modal-body {
@@ -1778,7 +1784,7 @@ body.dashboard .records-table tbody tr:hover td {
 body.dashboard .form-ok {
   font-size: 12px;
   font-weight: 600;
-  color: var(--green);
+  color: #C13501;
 }
 
 body.dashboard .form-ok:empty {
@@ -1786,12 +1792,12 @@ body.dashboard .form-ok:empty {
 }
 
 body.dashboard .pill.status-pending {
-  background: rgba(242, 106, 33, 0.12);
-  color: #b4470f;
+  background: rgba(254, 85, 22, 0.14);
+  color: #C13501;
 }
 
 body.dashboard .pill.status-cancelled {
-  background: #eceff0;
+  background: #E8D9BB;
   color: var(--muted);
 }
 
@@ -1803,7 +1809,7 @@ body.dashboard .status-cell {
 
 body.dashboard .icon-btn.ok:hover {
   background: var(--mint);
-  color: var(--green);
+  color: #C13501;
 }
 
 body.dashboard .qr-box .qr-actions {
@@ -1860,7 +1866,7 @@ body.dashboard .switch {
   padding: 0;
   border: 0;
   border-radius: 100px;
-  background: #c4cfc9;
+  background: #D2C6AC;
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -1892,7 +1898,7 @@ body.dashboard .switch:disabled {
 }
 
 body.dashboard .switch:focus-visible {
-  outline: 3px solid rgba(32, 122, 86, 0.45);
+  outline: 3px solid rgba(254, 85, 22, 0.45);
   outline-offset: 2px;
 }
 
@@ -1988,7 +1994,7 @@ body.dashboard .expiry-past {
 }
 
 body.dashboard .expiry-soon {
-  color: #b4470f;
+  color: #C13501;
   font-weight: 600;
 }
 
@@ -2040,7 +2046,7 @@ body.dashboard .combo-list {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 10px 28px rgba(17, 34, 24, 0.16);
+  box-shadow: 0 10px 28px rgba(7, 25, 37, 0.16);
 }
 
 body.dashboard .combo-list li {
@@ -2056,7 +2062,7 @@ body.dashboard .combo-list li.is-active {
 
 body.dashboard .combo-list li.is-current {
   font-weight: 600;
-  color: var(--green);
+  color: #C13501;
 }
 
 /* ---------- Plan -> expiry auto-fill note ---------- */
