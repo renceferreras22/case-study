@@ -9,11 +9,6 @@ require("dotenv").config();
 const app = express();
 
 app.use(cors());
-// app.use(
-//   cors({
-//     origin: process.env.FRONTEND_URL || "*",
-//   }),
-// );
 app.use(express.json());
 
 const userSchema = new mongoose.Schema({
@@ -117,13 +112,6 @@ app.get("/api/profile", async (req, res) => {
   }
 });
 
-/* =====================================================================
-   Members and payments  ->  MongoDB "test" database
-     Member  model -> "members"  collection
-     Payment model -> "payments" collection
-   Every route below requires the login token (Authorization: Bearer ...).
-   ===================================================================== */
-
 const requireAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -153,7 +141,6 @@ const text = (value, max) =>
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
-// A real calendar date written as YYYY-MM-DD (rejects things like 2026-02-31).
 const isDateStr = (value) => {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const [y, m, d] = value.split("-").map(Number);
@@ -161,7 +148,6 @@ const isDateStr = (value) => {
   return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
 };
 
-// "Today" as YYYY-MM-DD in the gym's timezone (default Manila; override with GYM_TIMEZONE on Render).
 const todayInGym = () => {
   try {
     return new Date().toLocaleDateString("en-CA", { timeZone: process.env.GYM_TIMEZONE || "Asia/Manila" });
@@ -170,7 +156,6 @@ const todayInGym = () => {
   }
 };
 
-// A membership is expired once its expiry date has passed (the expiry day itself still counts).
 const isExpired = (member) => Boolean(member.expiresAt) && member.expiresAt < todayInGym();
 
 const memberSchema = new mongoose.Schema(
@@ -192,7 +177,7 @@ const Member = mongoose.model("Member", memberSchema);
 
 const paymentSchema = new mongoose.Schema(
   {
-    member: { type: mongoose.Schema.Types.ObjectId, ref: "Member" },
+    member: { type: mongoose.Schema.Types.ObjectId, ref: "Member", default: null },
     memberName: { type: String, required: true, trim: true, maxlength: 120 },
     purpose: { type: String, required: true, trim: true, maxlength: 120 },
     method: { type: String, enum: ["cash", "gcash"], required: true },
@@ -210,7 +195,6 @@ const paymentSchema = new mongoose.Schema(
 
 const Payment = mongoose.model("Payment", paymentSchema);
 
-// One document per visit. checkOutAt stays null while the member is still in the gym.
 const checkinSchema = new mongoose.Schema(
   {
     member: { type: mongoose.Schema.Types.ObjectId, ref: "Member" },
@@ -223,8 +207,6 @@ const checkinSchema = new mongoose.Schema(
 );
 
 const Checkin = mongoose.model("Checkin", checkinSchema);
-
-/* ---------- members ---------- */
 
 app.get("/api/members", requireAuth, async (req, res) => {
   try {
@@ -277,7 +259,6 @@ app.post("/api/members", requireAuth, async (req, res) => {
       createdBy: req.user.email,
     });
 
-    // Optionally record a check-in at the same time (active, non-expired members only).
     let checkin = null;
     if (body.checkIn === true && member.status === "active" && !isExpired(member)) {
       checkin = await Checkin.create({
@@ -294,8 +275,6 @@ app.post("/api/members", requireAuth, async (req, res) => {
   }
 });
 
-// Edit a member's details (name, email, phone, plan, join date, expiry date, notes).
-// Only the fields that are sent are changed. Status has its own route, below.
 app.patch("/api/members/:id", requireAuth, async (req, res) => {
   try {
     const body = req.body || {};
@@ -358,7 +337,6 @@ app.patch("/api/members/:id", requireAuth, async (req, res) => {
     const renamed = body.name !== undefined;
     await member.save();
 
-    // Keep the "Members in gym" list in step with a rename (finished visits keep the old name).
     if (renamed) {
       await Checkin.updateMany(
         { member: member._id, checkOutAt: null },
@@ -372,7 +350,6 @@ app.patch("/api/members/:id", requireAuth, async (req, res) => {
   }
 });
 
-// Switch a member between active and inactive.
 app.patch("/api/members/:id/status", requireAuth, async (req, res) => {
   try {
     const status = (req.body || {}).status;
@@ -420,8 +397,6 @@ app.delete("/api/members/:id", requireAuth, async (req, res) => {
   }
 });
 
-/* ---------- payments ---------- */
-
 const makeReference = (method) => {
   const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const code = crypto.randomBytes(3).toString("hex").toUpperCase();
@@ -450,9 +425,6 @@ app.post("/api/payments", requireAuth, async (req, res) => {
     if (!method) {
       return res.status(400).json({ message: "Payment method must be cash or gcash." });
     }
-    if (typeof body.memberId !== "string" || !mongoose.isObjectIdOrHexString(body.memberId)) {
-      return res.status(400).json({ message: "Select a member." });
-    }
     if (!purpose) {
       return res.status(400).json({ message: "Payment purpose is required." });
     }
@@ -463,14 +435,20 @@ app.post("/api/payments", requireAuth, async (req, res) => {
       return res.status(400).json({ message: "Payment date is invalid." });
     }
 
-    const member = await Member.findById(body.memberId);
-    if (!member) {
-      return res.status(404).json({ message: "Member not found." });
+    let memberName = "Walk-in Guest";
+    let memberRef = null;
+
+    if (body.memberId && mongoose.isObjectIdOrHexString(body.memberId)) {
+      const member = await Member.findById(body.memberId);
+      if (member) {
+        memberRef = member._id;
+        memberName = member.name;
+      }
     }
 
     const doc = {
-      member: member._id,
-      memberName: member.name,
+      member: memberRef,
+      memberName: memberName,
       purpose,
       method,
       amount,
@@ -501,7 +479,6 @@ app.post("/api/payments", requireAuth, async (req, res) => {
   }
 });
 
-// A GCash payment starts as "pending"; staff then mark it paid or cancelled.
 app.patch("/api/payments/:id/status", requireAuth, async (req, res) => {
   try {
     const status = (req.body || {}).status;
@@ -531,8 +508,6 @@ app.patch("/api/payments/:id/status", requireAuth, async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 });
-
-/* ---------- check-ins ---------- */
 
 app.get("/api/checkins", requireAuth, async (req, res) => {
   try {
@@ -603,7 +578,6 @@ app.patch("/api/checkins/:id/checkout", requireAuth, async (req, res) => {
   }
 });
 
-// Return JSON (not an HTML page) for malformed requests.
 app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
   res
